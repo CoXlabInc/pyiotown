@@ -1,0 +1,10 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+src/iotown/__init__.py
+src/iotown/model.py
+src/iotown.egg-info/PKG-INFO
+src/iotown.egg-info/SOURCES.txt
+src/iotown.egg-info/dependency_links.txt
+src/iotown.egg-info/top_level.txt
