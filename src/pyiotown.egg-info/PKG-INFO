@@ -1,12 +1,12 @@
 Metadata-Version: 2.1
-Name: iotown
+Name: pyiotown
 Version: 0.0.1
 Summary: IoT.own API for DeepLearning
-Home-page: https://github.com/CoXlabInc/iotown
+Home-page: https://github.com/CoXlabInc/pyiotown
 Author: boguen
 Author-email: boguen@coxlab.kr
 License: UNKNOWN
-Project-URL: Bug Tracker, https://github.com/CoXlabInc/iotown/issues
+Project-URL: Bug Tracker, https://github.com/CoXlabInc/pyiotown/issues
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
