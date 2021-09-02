@@ -1,5 +1,5 @@
 # IoT.own API Python Package
-<img src="docs/Logo-IoT.own_1024x500.png" title="Iotown" alt="IoTown"></img><br/>
+<img src="https://town.coxlab.kr/images/iot.own_logo.png" title="Iotown" alt="IoTown"></img><br/>
 
 ## **Install**
 ```
