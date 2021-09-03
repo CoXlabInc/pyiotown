@@ -3,7 +3,8 @@ README.md
 pyproject.toml
 setup.py
 src/pyiotown/__init__.py
-src/pyiotown/model.py
+src/pyiotown/get.py
+src/pyiotown/post.py
 src/pyiotown.egg-info/PKG-INFO
 src/pyiotown.egg-info/SOURCES.txt
 src/pyiotown.egg-info/dependency_links.txt
