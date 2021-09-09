@@ -75,6 +75,9 @@ def uploadImage(url, token, payload):
 |url|String| IoT.own Server URL|http://192.168.0.5:8888|
 |token|String| IoT.own API token| aoijobseij12312oi51o4i6|
 |payload|dict| Image + Annotation Data|{"image": base64 encoded image ,"type":"jpg","labels":[ {"name":"human","x":0.1,"y":0.2,"w":0.4,"h":0.4}, { ... } , { ... }] }|
+```
+label exp) "name":classname, "x":centerX, "y":centerY, "w":boxWidth, "h":boxHeight (same YOLO)
+```
 
 **Warning : User have to encode Image base64.*
 ### *return*

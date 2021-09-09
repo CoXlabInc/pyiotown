@@ -7,13 +7,16 @@ def uploadImage(url, token, payload):
     '''
     apiaddr = url + "/api/v1.0/nn/image"
     header = {'Content-Type': 'application/json', 'Token': token}
-    r = requests.post(apiaddr, data=payload, headers=header)
-    if r.status_code == 200:
-        return True
-    else:
-        print(r)
+    try:
+        r = requests.post(apiaddr, data=payload, headers=header)
+        if r.status_code == 200:
+            return True
+        else:
+            print(r)
+            return False
+    except Exception as e:
+        print(e)
         return False
-
 def data(url, token, nid, data):
     '''
     url : IoT.own Server Address
@@ -26,9 +29,15 @@ def data(url, token, nid, data):
     apiaddr = url + "/api/v1.0/data"
     header = {'Accept':'application/json', 'token':token} 
     payload = { "type" : typenum, "nid" : nid, "data": data }
-    r = requests.post(apiaddr, json=payload, headers=header)
-    if r.status_code == 200:
-        return True
-    else:
-        print(r)
+    try:
+        r = requests.post(apiaddr, json=payload, headers=header)
+        if r.status_code == 200:
+            return True
+        else:
+            print(r)
+            return False
+    except Exception as e:
+        print(e)
         return False
+
+    
