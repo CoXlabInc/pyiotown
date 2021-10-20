@@ -1,15 +1,17 @@
 # **pyiotown Api Reference**
-
+---
+---
 # *LIST*
-## GET
-### [**downloadAnnotations()**](#**downloadAnnotations**)
-### [**downloadImage()**](#**downloadImage**)
-## POST
-### [**uploadImage()**](#**uploadImage**)
-### [**data()**](#**data**)
-### [**postprocess()**](#**postprocess**)
-### [**postprocess_common()**](#**postprocess_common**)
-
+## **GET**
+### [**downloadAnnotations()**](#downloadannotations-1)
+### [**downloadImage()**](#downloadimage-1)
+## **POST**
+### [**uploadImage()**](#uploadimage-1)
+### [**data()**](#data-1)
+### [**postprocess()**](#postprocess-1)
+### [**postprocess_common()**](#postprocesscommon-1)
+---
+---
 # *GET*
 ## **downloadAnnotations**
 download Dataset's Annotations. return Json data ( id, boxinfo )
