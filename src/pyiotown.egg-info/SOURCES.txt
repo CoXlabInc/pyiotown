@@ -8,4 +8,5 @@ src/pyiotown/post.py
 src/pyiotown.egg-info/PKG-INFO
 src/pyiotown.egg-info/SOURCES.txt
 src/pyiotown.egg-info/dependency_links.txt
+src/pyiotown.egg-info/requires.txt
 src/pyiotown.egg-info/top_level.txt

@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pyiotown",
-    version="0.1.2",
+    version="0.1.3",
     author="boguen",
     author_email="boguen@coxlab.kr",
     description="IoT.own API",
@@ -23,4 +23,5 @@ setuptools.setup(
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
     python_requires=">=3.6",
+    install_requires=["setuptools>=42","wheel","requests","paho-mqtt"],
 )
