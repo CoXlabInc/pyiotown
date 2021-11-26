@@ -5,6 +5,7 @@
 ## **GET**
 ### [**downloadAnnotations()**](#downloadannotations-1)
 ### [**downloadImage()**](#downloadimage-1)
+### [**storage()**](#storage-1)
 ## **POST**
 ### [**uploadImage()**](#uploadimage-1)
 ### [**data()**](#data-1)
@@ -22,7 +23,7 @@ def downloadAnnotations(url, token, classname):
 ### *parameters*
 | name | type| desc| example |
 |:------:|:------:|:------:|:------:|
-|url|String| IoT.own Server URL|http://192.168.0.5:8888|
+|url|String| IoT.own Server URL|https://192.168.0.5:8888|
 |token|String| IoT.own API token| aoijobseij12312oi51o4i6|
 |classname|String| image Label Class name | "human"|
 
@@ -35,7 +36,7 @@ def downloadAnnotations(url, token, classname):
 ```
 from pyiotown import get
 
-url = "http://192.168.0.5:8888"
+url = "https://192.168.0.5:8888"
 token = "aoijobseij12312oi51o4i6"
 classname = "car"
 r = get.downloadAnnotations(url,token,classname)
@@ -51,7 +52,7 @@ def downloadImage(url, token, imageID):
 ### *parameters*
 | name | type| desc| example |
 |:------:|:------:|:------:|:------:|
-|url|String| IoT.own Server URL|http://192.168.0.5:8888|
+|url|String| IoT.own Server URL|https://192.168.0.5:8888|
 |token|String| IoT.own API token| aoijobseij12312oi51o4i6|
 |imageID|String| image ID to download | 601023l345oi23uaeior|
 
@@ -66,13 +67,49 @@ from pyiotown import get
 from PIL import Image
 from io import BytesIO
 
-url = "http://192.168.0.5:8888"
+url = "https://192.168.0.5:8888"
 token = "aoijobseij12312oi51o4i6"
 imageID = "601023l345oi23uaeior"
 r = get.downloadImage(url,token,imageID)
 image = Image.open(BytesIO(r))
 image.save("test.jpg") # image save
-```     
+``` 
+
+---
+## **storage**
+download DB data from IoT.own Server
+### *prototype*
+```
+def storage(url, token, nid, date_from , date_to, lastKey=""):
+```
+### *parameters*
+| name | type| desc| example |
+|:------:|:------:|:------:|:------:|
+|url|String| IoT.own Server URL|https://192.168.0.5|
+|token|String| IoT.own API token| aoijobseij12312oi51o4i6|
+|nid|String| data node ID, if "", then search all node | LW1122334455667788|
+|date_from|String| UTC date from  | 2021-11-19T00:00:00Z |
+|date_to|String| UTC date to | 2021-11-25T23:59:59Z |
+|lastKey|String| default is None, but if response data > 5000, lastKey will be returned. next, api call using that lastKey. then next 5000 data will be returned | 601023l345oi23uaei or ""|
+
+### *return*
+| value | desc|
+|:---:|:---:|
+| Dict | if Download Success, return dictionary. data is different from time to time. so print that return value |
+| None | if Download Fail, return None |
+### *Example*
+```
+from pyiotown import get
+
+url = "https://192.168.0.5"
+token = "aoijobseij12312oi51o4i6"
+nodeID = "LW1122334455667788"
+date_from = "2021-11-19T00:00:00Z"
+date_to = "2021-11-25T23:59:59Z"
+r = get.storage(url,token,nodeID,date_from,date_to)
+```
+
+
 
 # *POST*
 ## **uploadImage**
@@ -84,7 +121,7 @@ def uploadImage(url, token, payload):
 ### *parameters*
 | name | type| desc| example |
 |:------:|:------:|:------:|:------:|
-|url|String| IoT.own Server URL|http://192.168.0.5:8888|
+|url|String| IoT.own Server URL|https://192.168.0.5:8888|
 |token|String| IoT.own API token| aoijobseij12312oi51o4i6|
 |payload|dict| Image + Annotation Data|{"image": base64 encoded image ,"type":"jpg","labels":[ {"name":"human","x":0.1,"y":0.2,"w":0.4,"h":0.4}, { ... } , { ... }] }|
 ```
@@ -101,7 +138,7 @@ label exp) "name":classname, "x":centerX, "y":centerY, "w":boxWidth, "h":boxHeig
 ```
 from pyiotown import post
 
-url = "http://192.168.0.5:8888"
+url = "https://192.168.0.5:8888"
 token = "aoijobseij12312oi51o4i6"
 f = open("test.jpg","rb")
 baseimage = base64/b64encode(f.read()).decode('UTF-8')
@@ -119,7 +156,7 @@ def data(url, token, nid, data)
 ### *parameters*
 |name|type|desc|example|
 |:---:|:---:|:---:|:---:|
-|url|String| IoT.own Server URL|http://192.168.0.5:8888|
+|url|String| IoT.own Server URL|https://192.168.0.5:8888|
 |token|String| IoT.own API token| aoijobseij12312oi51o4i6|
 |nid|String| registered in IoT.own Node ID | LW140C5BFFFF |
 |data| dict | data from device | { "temper":12.5, "class":"timer" , ... } 
@@ -133,7 +170,7 @@ def data(url, token, nid, data)
 ### *Example*
 ```
 from pyiotown import post
-url = "http://192.168.0.5:8888"
+url = "https://192.168.0.5:8888"
 token = "aoijobseij12312oi51o4i6"
 nodeid = "LW140C5BFFFF"
 payload = { "temper":12.5, "class":"timer" }
@@ -150,7 +187,7 @@ def postprocess(url, token, name, func, username, pw)
 ### *parameters*
 |name|type|desc|example|
 |:---:|:---:|:---:|:---:|
-|url|String| IoT.own Server URL|http://192.168.0.5|
+|url|String| IoT.own Server URL|https://192.168.0.5|
 |token|String| IoT.own API token| aoijobseij12312oi51o4i6|
 |name|String| post process name | postproc1 |
 |func| function | self-made function | postproc | 
@@ -197,7 +234,7 @@ def postproc(rawdata):
     rawdata['data'] = changedata
     return rawdata
 
-url = "http://192.168.0.1/"
+url = "https://192.168.0.1/"
 token = "aoijobseij12312oi51o4i6"
 name = "postproc1"
 username = "admin"
@@ -215,7 +252,7 @@ def postprocess_common(url, topic, func, username, pw)
 ### *parameters*
 |name|type|desc|example|
 |:---:|:---:|:---:|:---:|
-|url|String| IoT.own Server URL|http://192.168.0.5|
+|url|String| IoT.own Server URL|https://192.168.0.5|
 |topic|String| IoT.own API token| iotown/proc/common/yolo-x |
 |func| function | self-made function | postproc_common | 
 |username|String|MQTT ID|admin|
@@ -262,7 +299,7 @@ def postproc_common(rawdata):
     rawdata['data']['snap']['detected'] = [{"name":"human" "x":0.2,"y":0.4,"w":0.3,"h":0.3,"score":0.75 }, {"name":"car" "x":0.1,"y":0.1,"w":0.2,"h":0.2,"score":0.8 }]
     return rawdata
 
-url = "http://192.168.0.1/"
+url = "https://192.168.0.1/"
 topic = "iotown/proc/common/yolo-x"
 username = "admin"
 password = "1234"
