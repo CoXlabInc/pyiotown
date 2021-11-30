@@ -13,7 +13,7 @@ def uploadImage(url, token, payload):
     apiaddr = url + "/api/v1.0/nn/image"
     header = {'Content-Type': 'application/json', 'Token': token}
     try:
-        r = requests.post(apiaddr, data=payload, headers=header, verify=False)
+        r = requests.post(apiaddr, data=payload, headers=header, verify=False, timeout=10)
         if r.status_code == 200:
             return True
         else:
@@ -35,7 +35,7 @@ def data(url, token, nid, data):
     header = {'Accept':'application/json', 'token':token} 
     payload = { "type" : typenum, "nid" : nid, "data": data }
     try:
-        r = requests.post(apiaddr, json=payload, headers=header, verify=False)
+        r = requests.post(apiaddr, json=payload, headers=header, verify=False, timeout=10)
         if r.status_code == 200:
             return True
         else:
@@ -60,7 +60,7 @@ def updateExpire(url, token, name):
     header = {'Accept':'application/json', 'token':token}
     payload = { 'name' : name}
     try:
-        r = requests.post(apiaddr, json=payload, headers=header, verify=False)
+        r = requests.post(apiaddr, json=payload, headers=header, verify=False, timeout=10)
         if r.status_code == 200 or r.status_code == 403:
             print("update Expire Success")
         else:
@@ -74,7 +74,7 @@ def getTopic(url, token, name):
     header = {'Accept':'application/json', 'token':token}
     payload = {'name':name}    
     try:
-        r = requests.post(apiaddr, json=payload, headers=header, verify=False)
+        r = requests.post(apiaddr, json=payload, headers=header, verify=False, timeout=10)
         if r.status_code == 200:
             print("Get Topic From IoT.own Success")
             return json.loads((r.content).decode('utf-8'))['topic']

@@ -9,7 +9,7 @@ def downloadAnnotations(url, token, classname):
     apiaddr = url + "/api/v1.0/nn/images?labels=" + classname
     header = {'Accept':'application/json', 'token':token}
     try:
-        r = requests.get(apiaddr, headers=header, verify=False)
+        r = requests.get(apiaddr, headers=header, verify=False, timeout=10)
         if r.status_code == 200:
             return r.json()
         else:
@@ -32,7 +32,7 @@ def storage(url, token, nid, date_from , date_to, lastKey=""):
         apiaddr = url + "/api/v1.0/storage?nid=" + nid + "&from=" + date_from + "&to=" + date_to + "&lastKey=" + lastKey
     try:
         print(apiaddr)
-        r = requests.get(apiaddr,headers=header, verify=False)
+        r = requests.get(apiaddr,headers=header, verify=False, timeout=10)
         if r.status_code == 200:
             return r.json()
         else:
@@ -52,7 +52,7 @@ def downloadImage(url, token, imageID):
     apiaddr = url + "/nn/dataset/img/" + imageID
     header = {'Accept':'application/json', 'token':token}
     try:
-        r = requests.get(apiaddr, headers=header, verify=False)
+        r = requests.get(apiaddr, headers=header, verify=False, timeout=10)
         if r.status_code == 200:
             return r.content
         else:
