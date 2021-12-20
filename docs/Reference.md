@@ -149,10 +149,15 @@ r = post.uploadImage(url,token,payload)
 ---
 ## **data**
 send device data to IoT.own Server
+
+1. send only text
+2. send with files ( image, video, binary, ... )
 ### *prototype*
 ```
-def data(url, token, nid, data)
+def data(url, token, nid, data, files="")
 ```
+
+### **1. send only text**
 ### *parameters*
 |name|type|desc|example|
 |:---:|:---:|:---:|:---:|
@@ -176,6 +181,56 @@ nodeid = "LW140C5BFFFF"
 payload = { "temper":12.5, "class":"timer" }
 r = post.data(url,token,nodeid,payload)
 ```
+### **2. send with files ( image, video, binary, ... )**
+### *parameters*
+|name|type|desc|example|
+|:---:|:---:|:---:|:---:|
+|url|String| IoT.own Server URL|https://192.168.0.5:8888|
+|token|String| IoT.own API token| aoijobseij12312oi51o4i6|
+|nid|String| registered in IoT.own Node ID | LW140C5BFFFF |
+|data| dict | meta data for explain files | 
+{   "input_video": {
+        "type": "video",
+        file: "video1"
+        }, 
+    "output_video": {
+        "type": "video",
+        file: "video2"
+        }
+    } 
+|files| dict | files for send to Server | { "video1": open("1.mp4") ,"video2": open("2.mp4") }
+
+### *return*
+| value | desc|
+|:---:|:---:|
+| True | if send to IoT.own success, return True |
+| False | if send to IoT.own Fail, return False and print Error|
+
+### *Example*
+```
+from pyiotown import post
+url = "https://192.168.0.5:8888"
+token = "aoijobseij12312oi51o4i6"
+nodeid = "LW140C5BFFFF"
+meta = {   
+    "input_video": {
+        "type": "video",
+        file: "video1"
+        }, 
+    "output_video": {
+        "type": "video",
+        file: "video2"
+        }
+    } 
+files = {
+    "video1": open("1.mp4","rb")
+    "video2": open("2.mp4","rb")
+}
+r = post.data(url,token,nodeid,meta,files)
+```
+
+
+
 
 ---
 ## **postprocess**
