@@ -64,11 +64,45 @@ def on_connect(client, userdata, flags, rc):
         print("Connect OK! Subscribe Start")
     else:
         print("Bad connection Reason",rc)
+
+def post_files(result, url, token):
+    if 'data' not in result.keys():
+        return result
+    
+    for key in result['data'].keys():
+        if type(result['data'][key]) is dict:
+            resultkey = result['data'][key].keys()
+            if ('raw' in resultkey) and ( 'file_type' in resultkey) :
+                header = {'Accept':'application/json', 'token':token }
+                upload = { key + "file": result['data'][key]['raw'] }
+                try:
+                    r = requests.post( url + "/api/v1.0/file", headers=header, verify=False, timeout=10, files=upload )
+                    if r.status_code == 200:
+                        del result['data'][key]['raw']
+                        result['data'][key]['file_id'] = r.json()["files"][0]["file_id"]
+                        result['data'][key]['file_ext'] = r.json()["files"][0]["file_ext"]
+                        result['data'][key]['file_size'] = r.json()["files"][0]["file_size"]
+                    else:
+                        print("[ Error ] while send Files to IoT.own. check file format ['raw, file_type]")
+                        print(r.content)
+                except Exception as e:
+                    print(e)
+            # post post process apply.
+    return result
 def on_message(client, userdata, msg):
     data = json.loads((msg.payload).decode('utf-8'))
-    result = json.dumps(userdata(data)).encode('utf-8')
-    print("post process done. publish result")
-    client.publish('iotown/proc-done', result, 1)
+    result = userdata['func'](data)
+    if type(result) is dict:
+        post_result = post_files(result, userdata['url'], userdata['token'])
+        # result = json.dumps(result).encode('utf-8')
+        # print("post process done. publish result")
+        print("post process Done. publish results")
+        client.publish('iotown/proc-done', json.dumps(post_result), 1)
+    else:
+        print("CALLBACK FUNCTION TYPE ERROR [", type(result) ,"]must [ dict ]")
+        client.publish('iotown/proc-done', msg.payload, 1)
+
+    
 def updateExpire(url, token, name):
     apiaddr = url + "/api/v1.0/pp/proc"
     header = {'Accept':'application/json', 'token':token}
@@ -115,7 +149,10 @@ def postprocess(url, token, name, func, username, pw):
     client.on_connect = on_connect # callback function config (on_connect)
     client.on_message = on_message # callback function config (on_message)
     client.username_pw_set(username,pw)
-    client.user_data_set(func)
+
+    server_info = { "url":url,"token":token,"func":func}
+
+    client.user_data_set(server_info)
     #3 토픽정보를 가지고 subscribe를 시작한다.
     mqtt_server = urlparse(url).netloc
     print("connect to",mqtt_server)
