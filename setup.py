@@ -5,9 +5,9 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pyiotown",
-    version="0.2.2",
-    author="boguen",
-    author_email="boguen@coxlab.kr",
+    version="0.2.3dev5",
+    author="CoXlab Inc.",
+    author_email="support@coxlab.kr",
     description="IoT.own API",
     long_description=long_description,
     long_description_content_type="text/markdown",

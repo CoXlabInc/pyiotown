@@ -1,6 +1,6 @@
 import requests
 
-def downloadAnnotations(url, token, classname):
+def downloadAnnotations(url, token, classname, verify=True, timeout=60):
     ''' 
     url : IoT.own Server Address
     token : IoT.own API Token
@@ -9,7 +9,7 @@ def downloadAnnotations(url, token, classname):
     apiaddr = url + "/api/v1.0/nn/images?labels=" + classname
     header = {'Accept':'application/json', 'token':token}
     try:
-        r = requests.get(apiaddr, headers=header, verify=False, timeout=10)
+        r = requests.get(apiaddr, headers=header, verify=verify, timeout=timeout
         if r.status_code == 200:
             return r.json()
         else:
@@ -19,7 +19,7 @@ def downloadAnnotations(url, token, classname):
         print(e)
         return None
 
-def storage(url, token, nid, date_from , date_to, lastKey=""):
+def storage(url, token, nid, date_from , date_to, lastKey="", verify=True, timeout=60):
     '''
     url : IoT.own Server Address
     token : IoT.own API Token
@@ -32,7 +32,7 @@ def storage(url, token, nid, date_from , date_to, lastKey=""):
         apiaddr = url + "/api/v1.0/storage?nid=" + nid + "&from=" + date_from + "&to=" + date_to + "&lastKey=" + lastKey
     try:
         print(apiaddr)
-        r = requests.get(apiaddr,headers=header, verify=False, timeout=10)
+        r = requests.get(apiaddr,headers=header, verify=verify, timeout=timeout)
         if r.status_code == 200:
             return r.json()
         else:
@@ -43,7 +43,7 @@ def storage(url, token, nid, date_from , date_to, lastKey=""):
         return None
     
 
-def downloadImage(url, token, imageID):
+def downloadImage(url, token, imageID, verify=True, timeout=60):
     ''' 
     url : IoT.own Server Address
     token : IoT.own API Token
@@ -52,7 +52,7 @@ def downloadImage(url, token, imageID):
     apiaddr = url + "/nn/dataset/img/" + imageID
     header = {'Accept':'application/json', 'token':token}
     try:
-        r = requests.get(apiaddr, headers=header, verify=False, timeout=10)
+        r = requests.get(apiaddr, headers=header, verify=verify, timeout=timeout)
         if r.status_code == 200:
             return r.content
         else:

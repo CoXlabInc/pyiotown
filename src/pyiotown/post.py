@@ -1,10 +1,11 @@
+import sys
 import requests
 import threading
 from urllib.parse import urlparse
 import paho.mqtt.client as mqtt
 import json
 
-def uploadImage(url, token, payload):
+def uploadImage(url, token, payload, verify=True, timeout=60):
     '''
     url : IoT.own Server Address
     token : IoT.own API Token
@@ -13,7 +14,7 @@ def uploadImage(url, token, payload):
     apiaddr = url + "/api/v1.0/nn/image"
     header = {'Content-Type': 'application/json', 'Token': token}
     try:
-        r = requests.post(apiaddr, data=payload, headers=header, verify=False, timeout=10)
+        r = requests.post(apiaddr, data=payload, headers=header, verify=verify, timeout=timeout)
         if r.status_code == 200:
             return True
         else:
@@ -22,7 +23,7 @@ def uploadImage(url, token, payload):
     except Exception as e:
         print(e)
         return False
-def data(url, token, nid, data, upload=""):
+def data(url, token, nid, data, upload="", verify=True, timeout=60):
     '''
     url : IoT.own Server Address
     token : IoT.own API Token
@@ -36,7 +37,7 @@ def data(url, token, nid, data, upload=""):
         header = {'Accept':'application/json', 'token':token } 
         payload = { "type" : typenum, "nid" : nid, "data": data }
         try:
-            r = requests.post(apiaddr, json=payload, headers=header, verify=False, timeout=10)
+            r = requests.post(apiaddr, json=payload, headers=header, verify=verify, timeout=timeout)
             if r.status_code == 200:
                 return True
             else:
@@ -49,7 +50,7 @@ def data(url, token, nid, data, upload=""):
         header = {'Accept':'application/json', 'token':token } 
         payload = { "type" : typenum, "nid" : nid, "meta": json.dumps(data) }
         try:
-            r = requests.post(apiaddr, data=payload, headers=header, verify=False, timeout=10, files=upload)
+            r = requests.post(apiaddr, data=payload, headers=header, verify=verify, timeout=timeout, files=upload)
             if r.status_code == 200:
                 return True
             else:
@@ -65,7 +66,7 @@ def on_connect(client, userdata, flags, rc):
     else:
         print("Bad connection Reason",rc)
 
-def post_files(result, url, token):
+def post_files(result, url, token, verify=True, timeout=60):
     if 'data' not in result.keys():
         return result
     
@@ -76,7 +77,7 @@ def post_files(result, url, token):
                 header = {'Accept':'application/json', 'token':token }
                 upload = { key + "file": result['data'][key]['raw'] }
                 try:
-                    r = requests.post( url + "/api/v1.0/file", headers=header, verify=False, timeout=10, files=upload )
+                    r = requests.post( url + "/api/v1.0/file", headers=header, verify=verify, timeout=timeout, files=upload )
                     if r.status_code == 200:
                         del result['data'][key]['raw']
                         result['data'][key]['file_id'] = r.json()["files"][0]["file_id"]
@@ -89,26 +90,33 @@ def post_files(result, url, token):
                     print(e)
             # post post process apply.
     return result
+
 def on_message(client, userdata, msg):
     data = json.loads((msg.payload).decode('utf-8'))
-    result = userdata['func'](data)
-    if type(result) is dict:
-        post_result = post_files(result, userdata['url'], userdata['token'])
-        # result = json.dumps(result).encode('utf-8')
-        # print("post process done. publish result")
+    try:
+        result = userdata['func'](data)
+    except Exception as e:
+        print(f'Error on calling the user-defined function', file=sys.stderr)
+        print(e, file=sys.stderr)
+        client.publish('iotown/proc-done', msg.payload, 1)
+        return
+    
+    if type(result) is dict and 'data' in result.keys():
+        if 'token' in userdata.keys():
+            result = post_files(result, userdata['url'], userdata['token'])
         print("post process Done. publish results")
-        client.publish('iotown/proc-done', json.dumps(post_result), 1)
+        client.publish('iotown/proc-done', json.dumps(result), 1)
     else:
-        print("CALLBACK FUNCTION TYPE ERROR [", type(result) ,"]must [ dict ]")
+        print(f"CALLBACK FUNCTION TYPE ERROR {type(result)} must [ dict ]", file=sys.stderr)
         client.publish('iotown/proc-done', msg.payload, 1)
 
     
-def updateExpire(url, token, name):
+def updateExpire(url, token, name, verify=True, timeout=60):
     apiaddr = url + "/api/v1.0/pp/proc"
     header = {'Accept':'application/json', 'token':token}
     payload = { 'name' : name}
     try:
-        r = requests.post(apiaddr, json=payload, headers=header, verify=False, timeout=10)
+        r = requests.post(apiaddr, json=payload, headers=header, verify=verify, timeout=timeout)
         if r.status_code == 200 or r.status_code == 403:
             print("update Expire Success")
         else:
@@ -117,12 +125,13 @@ def updateExpire(url, token, name):
         print("update Expire Fail! reason:", e)
     timer = threading.Timer(60, updateExpire,[url,token,name])
     timer.start()
-def getTopic(url, token, name):
+
+def getTopic(url, token, name, verify=True, timeout=60):
     apiaddr = url + "/api/v1.0/pp/proc"
     header = {'Accept':'application/json', 'token':token}
     payload = {'name':name}    
     try:
-        r = requests.post(apiaddr, json=payload, headers=header, verify=False, timeout=10)
+        r = requests.post(apiaddr, json=payload, headers=header, verify=verify, timeout=timeout)
         if r.status_code == 200:
             print("Get Topic From IoT.own Success")
             return json.loads((r.content).decode('utf-8'))['topic']
@@ -135,41 +144,40 @@ def getTopic(url, token, name):
     except Exception as e:
         print(e)
         return None
-def postprocess(url, token, name, func, username, pw):
+
+def postprocess(url, token, name, func, username, pw, port=1883):
     # get Topic From IoTown
     topic = getTopic(url,token,name)
     if topic == None:
         raise Exception("Fatal Error")
     else:
         updateExpire(url, token, name)
-    # if return typical topic, then updateExpire 60 seconds
-    # if return 403 error, that means postprocess already in use at the other 
-    #2  func등록 및 ID, PASSWORD 등록하기
-    client = mqtt.Client() #client config
-    client.on_connect = on_connect # callback function config (on_connect)
-    client.on_message = on_message # callback function config (on_message)
-    client.username_pw_set(username,pw)
+    client = mqtt.Client()
+    client.on_connect = on_connect
+    client.on_message = on_message
+    client.username_pw_set(username, pw)
+    client.user_data_set({
+        "url":url,
+        "token":token,
+        "func":func
+    })
+    mqtt_server = urlparse(url).hostname
+    print(f"connect to {mqtt_server}:{port}")
+    client.connect(mqtt_server, port=port)
+    client.subscribe(topic, 1)
+    client.loop_forever()
 
-    server_info = { "url":url,"token":token,"func":func}
-
-    client.user_data_set(server_info)
-    #3 토픽정보를 가지고 subscribe를 시작한다.
-    mqtt_server = urlparse(url).netloc
-    print("connect to",mqtt_server)
-    client.connect(mqtt_server) # server address
-    client.subscribe(topic,1) # subscribe all 'topic#'
-    client.loop_forever() # loop forever
-
-def postprocess_common(url, topic, func, username, pw):
-    client = mqtt.Client() #client config
-    client.on_connect = on_connect # callback function config (on_connect)
-    client.on_message = on_message # callback function config (on_message)
-    client.username_pw_set(username,pw)
-    client.user_data_set(func)
-    #3 토픽정보를 가지고 subscribe를 시작한다.
-    mqtt_server = urlparse(url).netloc
-    print("connect to",mqtt_server)
-    client.connect(mqtt_server) # server address
-    # topic = 'iotown/proc/common/yolox-x'
-    client.subscribe(topic,1) # subscribe all 'topic#'
-    client.loop_forever() # loop forever
+def postprocess_common(url, topic, func, username, pw, port=1883):
+    client = mqtt.Client()
+    client.on_connect = on_connect
+    client.on_message = on_message
+    client.username_pw_set(username, pw)
+    client.user_data_set({
+        "url": url,
+        "func": func
+    })
+    mqtt_server = urlparse(url).hostname
+    print(f"connect to {mqtt_server}:{port}")
+    client.connect(mqtt_server, port=port)
+    client.subscribe(f'iotown/proc/common/{topic}', 1)
+    client.loop_forever()

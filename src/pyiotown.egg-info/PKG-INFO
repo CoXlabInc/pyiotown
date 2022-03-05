@@ -1,10 +1,10 @@
 Metadata-Version: 2.1
 Name: pyiotown
-Version: 0.2.1
+Version: 0.2.3.dev5
 Summary: IoT.own API
 Home-page: https://github.com/CoXlabInc/pyiotown
-Author: boguen
-Author-email: boguen@coxlab.kr
+Author: CoXlab Inc.
+Author-email: support@coxlab.kr
 License: UNKNOWN
 Project-URL: Bug Tracker, https://github.com/CoXlabInc/pyiotown/issues
 Platform: UNKNOWN
