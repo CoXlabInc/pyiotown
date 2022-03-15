@@ -104,8 +104,9 @@ def on_message(client, userdata, msg):
     if type(result) is dict and 'data' in result.keys():
         if 'token' in userdata.keys():
             result = post_files(result, userdata['url'], userdata['token'])
-        print("post process Done. publish results")
         client.publish('iotown/proc-done', json.dumps(result), 1)
+    elif result is None:
+        print(f"Discard the message")
     else:
         print(f"CALLBACK FUNCTION TYPE ERROR {type(result)} must [ dict ]", file=sys.stderr)
         client.publish('iotown/proc-done', msg.payload, 1)
