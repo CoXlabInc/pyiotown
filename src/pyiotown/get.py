@@ -1,4 +1,5 @@
 import requests
+import datetime
 
 def downloadAnnotations(url, token, classname, verify=True, timeout=60):
     ''' 
@@ -24,7 +25,7 @@ def storage(url, token, nid, date_from , date_to, lastKey="", group_id=None, ver
     url : IoT.own Server Address
     token : IoT.own API Token
     nid : Node ID
-    date_from : UTC structure ex) "2018-11-02T13:00:00Z"
+    date_from : UTC string ex) "2018-11-02T13:00:00Z" 
     '''
                     
     header = {'Accept':'application/json','token':token}
@@ -32,7 +33,7 @@ def storage(url, token, nid, date_from , date_to, lastKey="", group_id=None, ver
     # only for administrators
     if group_id is not None:
         header['grpid'] = group_id
-    
+
     apiaddr = url + "/api/v1.0/storage?nid=" + nid + "&from=" + date_from + "&to=" + date_to
     if lastKey != "":
         apiaddr = url + "/api/v1.0/storage?nid=" + nid + "&from=" + date_from + "&to=" + date_to + "&lastKey=" + lastKey
@@ -48,7 +49,6 @@ def storage(url, token, nid, date_from , date_to, lastKey="", group_id=None, ver
         print(e)
         return None
     
-
 def downloadImage(url, token, imageID, verify=True, timeout=60):
     ''' 
     url : IoT.own Server Address
