@@ -35,19 +35,30 @@ def storage(url, token, nid, date_from , date_to, lastKey="", group_id=None, ver
         header['grpid'] = group_id
 
     apiaddr = url + "/api/v1.0/storage?nid=" + nid + "&from=" + date_from + "&to=" + date_to
-    if lastKey != "":
-        apiaddr = url + "/api/v1.0/storage?nid=" + nid + "&from=" + date_from + "&to=" + date_to + "&lastKey=" + lastKey
-    try:
-        print(apiaddr)
-        r = requests.get(apiaddr,headers=header, verify=verify, timeout=timeout)
-        if r.status_code == 200:
-            return r.json()
-        else:
-            print(r.content)
+    result = None
+    
+    while True:
+        try:
+            r = requests.get(apiaddr if lastKey == "" else apiaddr + "&lastKey=" + lastKey,
+                             headers=header, verify=verify, timeout=timeout)
+            if r.status_code == 200:
+                if result is None:
+                    result = r.json()
+                    del result['lastKey']
+                else:
+                    result['data']['value'] += r.json()['data']['value']
+
+                if 'lastKey' in r.json().keys():
+                    lastKey = r.json()['lastKey']
+                    continue
+                else:
+                    return result
+            else:
+                print(r.content)
+                return None
+        except Exception as e:
+            print(e)
             return None
-    except Exception as e:
-        print(e)
-        return None
     
 def downloadImage(url, token, imageID, verify=True, timeout=60):
     ''' 
