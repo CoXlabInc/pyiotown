@@ -7,10 +7,10 @@ def downloadAnnotations(url, token, classname, verify=True, timeout=60):
     token : IoT.own API Token
     classname : Image Class ex) car, person, airplain
     '''
-    apiaddr = url + "/api/v1.0/nn/images?labels=" + classname
+    uri = url + "/api/v1.0/nn/images?labels=" + classname
     header = {'Accept':'application/json', 'token':token}
     try:
-        r = requests.get(apiaddr, headers=header, verify=verify, timeout=timeout)
+        r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
         if r.status_code == 200:
             return r.json()
         else:
@@ -20,12 +20,11 @@ def downloadAnnotations(url, token, classname, verify=True, timeout=60):
         print(e)
         return None
 
-def storage(url, token, nid, date_from , date_to, lastKey="", group_id=None, verify=True, timeout=60):
+def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort=None, lastKey="", group_id=None, verify=True, timeout=60):
     '''
     url : IoT.own Server Address
     token : IoT.own API Token
     nid : Node ID
-    date_from : UTC string ex) "2018-11-02T13:00:00Z" 
     '''
                     
     header = {'Accept':'application/json','token':token}
@@ -34,12 +33,33 @@ def storage(url, token, nid, date_from , date_to, lastKey="", group_id=None, ver
     if group_id is not None:
         header['grpid'] = group_id
 
-    apiaddr = url + "/api/v1.0/storage?nid=" + nid + "&from=" + date_from + "&to=" + date_to
+    uri_prefix = url + "/api/v1.0/storage"
+
+    params = []
+    
+    if nid != None:
+        params.append("nid=" + nid)
+        
+    if date_from != None:
+        params.append("from=" + date_from)
+
+    if date_to != None:
+        params.append("to=" + date_to)
+
+    if count != None:
+        params.append("count=" + count)
+
+    if sort != None:
+        params.append("sort=" + sort)
+
+    if len(params) > 0:
+        uri_prefix += '?' + '&'.join(params)
+        
     result = None
     
     while True:
         try:
-            uri = apiaddr if lastKey == "" else apiaddr + "&lastKey=" + lastKey
+            uri = uri_prefix if lastKey == "" else uri_prefix + "&lastKey=" + lastKey
             r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
         except Exception as e:
             print(e)
@@ -60,16 +80,17 @@ def storage(url, token, nid, date_from , date_to, lastKey="", group_id=None, ver
         else:
             print(r)
             return None
+
 def downloadImage(url, token, imageID, verify=True, timeout=60):
     ''' 
     url : IoT.own Server Address
     token : IoT.own API Token
     imageID : IoT.own imageID ( using annotation's 'id' not '_id' ) 
     '''
-    apiaddr = url + "/nn/dataset/img/" + imageID
+    uri = url + "/nn/dataset/img/" + imageID
     header = {'Accept':'application/json', 'token':token}
     try:
-        r = requests.get(apiaddr, headers=header, verify=verify, timeout=timeout)
+        r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
         if r.status_code == 200:
             return r.content
         else:
