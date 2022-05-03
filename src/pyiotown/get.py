@@ -39,27 +39,27 @@ def storage(url, token, nid, date_from , date_to, lastKey="", group_id=None, ver
     
     while True:
         try:
-            r = requests.get(apiaddr if lastKey == "" else apiaddr + "&lastKey=" + lastKey,
-                             headers=header, verify=verify, timeout=timeout)
-            if r.status_code == 200:
-                if result is None:
-                    result = r.json()
-                    del result['lastKey']
-                else:
-                    result['data']['value'] += r.json()['data']['value']
-
-                if 'lastKey' in r.json().keys():
-                    lastKey = r.json()['lastKey']
-                    continue
-                else:
-                    return result
-            else:
-                print(r.content)
-                return None
+            uri = apiaddr if lastKey == "" else apiaddr + "&lastKey=" + lastKey
+            r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
         except Exception as e:
             print(e)
             return None
     
+        if r.status_code == 200:
+            if result is None:
+                result = r.json()
+                if 'lastKey' in result.keys():
+                    del result['lastKey']
+            else:
+                result['data'] += r.json()['data']
+
+            if 'lastKey' in r.json().keys():
+                lastKey = r.json()['lastKey']
+            else:
+                return result
+        else:
+            print(r)
+            return None
 def downloadImage(url, token, imageID, verify=True, timeout=60):
     ''' 
     url : IoT.own Server Address
