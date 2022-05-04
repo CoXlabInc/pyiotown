@@ -92,7 +92,21 @@ def post_files(result, url, token, verify=True, timeout=60):
     return result
 
 def on_message(client, userdata, msg):
-    data = json.loads((msg.payload).decode('utf-8'))
+    message = json.loads((msg.payload).decode('utf-8'))
+
+    if userdata['group'] == 'common':
+        # Common post process
+        data = message
+    else:
+        # User-specific post process
+        data = { 'gid': message['gid'],
+                 'nid': message['nid'],
+                 'data': message['data'],
+                 'ntype': message['ntype'],
+                 'ndesc': message['ndesc'] }
+        if 'lora_meta' in message.keys():
+            data['lora_meta'] = message['lora_meta']
+    
     try:
         result = userdata['func'](data)
     except Exception as e:
@@ -100,11 +114,11 @@ def on_message(client, userdata, msg):
         print(e, file=sys.stderr)
         client.publish('iotown/proc-done', msg.payload, 1)
         return
-    
+
     if type(result) is dict and 'data' in result.keys():
-        if 'token' in userdata.keys():
-            result = post_files(result, userdata['url'], userdata['token'])
-        client.publish('iotown/proc-done', json.dumps(result), 1)
+        result = post_files(result, userdata['url'], userdata['token'])
+        message['data'] = result['data']
+        client.publish('iotown/proc-done', json.dumps(message), 1)
     elif result is None:
         print(f"Discard the message")
     else:
@@ -118,13 +132,11 @@ def updateExpire(url, token, name, verify=True, timeout=60):
     payload = { 'name' : name}
     try:
         r = requests.post(apiaddr, json=payload, headers=header, verify=verify, timeout=timeout)
-        if r.status_code == 200 or r.status_code == 403:
-            print("update Expire Success")
-        else:
-            print("update Expire Fail! reason:",r)
+        if r.status_code != 200 and r.status_code != 403:
+            printf("update Expire Fail! {r}")
     except Exception as e:
         print("update Expire Fail! reason:", e)
-    timer = threading.Timer(60, updateExpire,[url,token,name])
+    timer = threading.Timer(60, updateExpire, [url, token, name, verify, timeout])
     timer.start()
 
 def getTopic(url, token, name, verify=True, timeout=60):
@@ -134,11 +146,13 @@ def getTopic(url, token, name, verify=True, timeout=60):
     try:
         r = requests.post(apiaddr, json=payload, headers=header, verify=verify, timeout=timeout)
         if r.status_code == 200:
-            print("Get Topic From IoT.own Success")
-            return json.loads((r.content).decode('utf-8'))['topic']
+            topic = json.loads((r.content).decode('utf-8'))['topic']
+            #print(f"Get Topic From IoT.own Success: {topic}")
+            return topic
         elif r.status_code == 403:
-            print("process already in use. please restart after 1 minute later.")
-            return json.loads((r.content).decode('utf-8'))['topic']
+            topic = json.loads((r.content).decode('utf-8'))['topic']
+            #print(f"process already in use. please restart after 1 minute later.: {topic}")
+            return topic
         else:
             print(r)
             return None
@@ -146,24 +160,33 @@ def getTopic(url, token, name, verify=True, timeout=60):
         print(e)
         return None
 
-def postprocess(url, token, name, func, username, pw, port=1883):
+def postprocess(url, name, func, username, pw, port=8883):
     # get Topic From IoTown
-    topic = getTopic(url,token,name)
+    topic = getTopic(url, pw, name)
+
     if topic == None:
-        raise Exception("Fatal Error")
-    else:
-        updateExpire(url, token, name)
+        raise Exception("IoT.own returned none")
+
+    try:
+        group = topic.split('/')[2]
+    except Exception as e:
+        raise Exception(f"Invalid topic {topic}")
+    
+    updateExpire(url, pw, name)
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
     client.username_pw_set(username, pw)
     client.user_data_set({
-        "url":url,
-        "token":token,
-        "func":func
+        "url": url,
+        "token": pw,
+        "func": func,
+        "group": group
     })
     mqtt_server = urlparse(url).hostname
     print(f"connect to {mqtt_server}:{port}")
+    client.tls_set()
+    client.tls_insecure_set(True)
     client.connect(mqtt_server, port=port)
     client.subscribe(topic, 1)
     client.loop_forever()
@@ -175,7 +198,9 @@ def postprocess_common(url, topic, func, username, pw, port=1883):
     client.username_pw_set(username, pw)
     client.user_data_set({
         "url": url,
-        "func": func
+        "token": pw,
+        "func": func,
+        "group": "common"
     })
     mqtt_server = urlparse(url).hostname
     print(f"connect to {mqtt_server}:{port}")
