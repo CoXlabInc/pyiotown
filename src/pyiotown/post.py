@@ -133,9 +133,9 @@ def updateExpire(url, token, name, verify=True, timeout=60):
     try:
         r = requests.post(apiaddr, json=payload, headers=header, verify=verify, timeout=timeout)
         if r.status_code != 200 and r.status_code != 403:
-            printf("update Expire Fail! {r}")
+            print(f"update Expire Fail! {r}")
     except Exception as e:
-        print("update Expire Fail! reason:", e)
+        print(f"update Expire Fail! reason: {e}")
     timer = threading.Timer(60, updateExpire, [url, token, name, verify, timeout])
     timer.start()
 
