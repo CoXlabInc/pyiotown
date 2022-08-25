@@ -160,9 +160,9 @@ def getTopic(url, token, name, verify=True, timeout=60):
         print(e)
         return None
 
-def postprocess(url, name, func, username, pw, port=8883):
+def postprocess(url, name, func, username, pw, port=8883, verify=True):
     # get Topic From IoTown
-    topic = getTopic(url, pw, name)
+    topic = getTopic(url, pw, name, verify)
 
     if topic == None:
         raise Exception("IoT.own returned none")
@@ -172,7 +172,7 @@ def postprocess(url, name, func, username, pw, port=8883):
     except Exception as e:
         raise Exception(f"Invalid topic {topic}")
     
-    updateExpire(url, pw, name)
+    updateExpire(url, pw, name, verify)
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
