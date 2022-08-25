@@ -1,0 +1,5 @@
+pbr
+setuptools
+wheel
+requests
+paho-mqtt
