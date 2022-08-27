@@ -189,9 +189,9 @@ def postprocess(url, name, func, username, pw, port=8883, verify=True):
     client.tls_insecure_set(True)
     client.connect(mqtt_server, port=port)
     client.subscribe(topic, 1)
-    client.loop_forever()
+    return client
 
-def postprocess_common(url, topic, func, username, pw, port=1883):
+def postprocess_common(url, topic, func, username, pw, port=8883):
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
@@ -204,6 +204,15 @@ def postprocess_common(url, topic, func, username, pw, port=1883):
     })
     mqtt_server = urlparse(url).hostname
     print(f"connect to {mqtt_server}:{port}")
+    client.tls_set()
+    client.tls_insecure_set(True)
     client.connect(mqtt_server, port=port)
     client.subscribe(f'iotown/proc/common/{topic}', 1)
-    client.loop_forever()
+    return client
+
+def postprocess_loop_forever(clients):
+    if isinstance(clients, paho.mqtt.client):
+        clients = [ clients ]
+    while True:
+        for c in clients:
+            c.loop(timeout=0.01)
