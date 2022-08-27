@@ -211,7 +211,7 @@ def postprocess_common(url, topic, func, username, pw, port=8883):
     return client
 
 def postprocess_loop_forever(clients):
-    if isinstance(clients, paho.mqtt.client):
+    if isinstance(clients, list) == False:
         clients = [ clients ]
 
     while True:
