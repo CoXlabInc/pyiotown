@@ -204,7 +204,7 @@ def postprocess_common(url, topic, func, username, pw, port=8883):
     })
     mqtt_server = urlparse(url).hostname
     print(f"connect to {mqtt_server}:{port}")
-    client.tls_set()
+    client.tls_set(cert_reqs=ssl.CERT_NONE)
     client.tls_insecure_set(True)
     client.connect(mqtt_server, port=port)
     client.subscribe(f'iotown/proc/common/{topic}', 1)
