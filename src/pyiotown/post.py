@@ -4,6 +4,7 @@ import threading
 from urllib.parse import urlparse
 import paho.mqtt.client as mqtt
 import json
+import ssl
 
 def uploadImage(url, token, payload, verify=True, timeout=60):
     '''
