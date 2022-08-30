@@ -185,7 +185,7 @@ def postprocess(url, name, func, username, pw, port=8883, verify=True):
     })
     mqtt_server = urlparse(url).hostname
     print(f"connect to {mqtt_server}:{port}")
-    client.tls_set()
+    client.tls_set(cert_reqs=ssl.CERT_NONE)
     client.tls_insecure_set(True)
     client.connect(mqtt_server, port=port)
     client.subscribe(topic, 1)
