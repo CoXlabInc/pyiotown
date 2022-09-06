@@ -42,7 +42,7 @@ def on_message(client, userdata, msg):
         result = None
     
     if type(result) is dict and 'data' in result.keys():
-        result = post.post_files(result, userdata['url'], userdata['token'])
+        result = post_files(result, userdata['url'], userdata['token'])
         message['data'] = result['data']
         client.publish('iotown/proc-done', json.dumps(message), 1)
     elif result is None:
