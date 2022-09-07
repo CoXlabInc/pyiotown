@@ -115,7 +115,7 @@ def connect(url, name, func, username, pw, mqtt_host=None, port=8883, verify=Tru
     if mqtt_host is None:
       mqtt_server = urlparse(url).hostname
     else:
-      mqtt_server = urlparse(mqtt_url).hostname
+      mqtt_server = mqtt_host
       
     print(f"Post process '{name}' is trying to connect to {mqtt_server}:{port}")
     client.tls_set(cert_reqs=ssl.CERT_NONE)
@@ -141,7 +141,7 @@ def connect_common(url, topic, func, username, pw, mqtt_host=None, port=8883, dr
     if mqtt_host is None:
       mqtt_server = urlparse(url).hostname
     else:
-      mqtt_server = urlparse(mqtt_url).hostname
+      mqtt_server = mqtt_host
 
     print(f"Post process '{topic}' is trying to Connect to {mqtt_server}:{port}")
     client.tls_set(cert_reqs=ssl.CERT_NONE)
