@@ -1,25 +1,27 @@
 import requests
 import datetime
 
-def downloadAnnotations(url, token, classname, verify=True, timeout=60):
-    ''' 
-    url : IoT.own Server Address
-    token : IoT.own API Token
-    classname : Image Class ex) car, person, airplain
-    '''
-    uri = url + "/api/v1.0/nn/images?labels=" + classname
-    header = {'Accept':'application/json', 'token':token}
+def node(url, token, nid=None, group_id=None, verify=True, timeout=60):
+    header = {'Accept':'application/json','token':token}
+
+    # only for administrators
+    if group_id is not None:
+        header['grpid'] = group_id
+
+    uri_prefix = url + "/api/v1.0/" + ("nodes" if nid is None else f"node/{nid}")
+    
     try:
         r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
-        if r.status_code == 200:
-            return r.json()
-        else:
-            print(r)
-            return None
     except Exception as e:
         print(e)
         return None
-
+    
+    if r.status_code == 200:
+        return r.json()
+    else:
+        print(r)
+        return None
+    
 def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort=None, lastKey="", group_id=None, verify=True, timeout=60):
     '''
     url : IoT.own Server Address
@@ -93,6 +95,25 @@ def downloadImage(url, token, imageID, verify=True, timeout=60):
         r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
         if r.status_code == 200:
             return r.content
+        else:
+            print(r)
+            return None
+    except Exception as e:
+        print(e)
+        return None
+
+def downloadAnnotations(url, token, classname, verify=True, timeout=60):
+    ''' 
+    url : IoT.own Server Address
+    token : IoT.own API Token
+    classname : Image Class ex) car, person, airplain
+    '''
+    uri = url + "/api/v1.0/nn/images?labels=" + classname
+    header = {'Accept':'application/json', 'token':token}
+    try:
+        r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
+        if r.status_code == 200:
+            return r.json()
         else:
             print(r)
             return None
