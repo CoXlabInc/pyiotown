@@ -8,7 +8,7 @@ def node(url, token, nid=None, group_id=None, verify=True, timeout=60):
     if group_id is not None:
         header['grpid'] = group_id
 
-    uri_prefix = url + "/api/v1.0/" + ("nodes" if nid is None else f"node/{nid}")
+    uri = url + "/api/v1.0/" + ("nodes" if nid is None else f"node/{nid}")
     
     try:
         r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
