@@ -33,11 +33,16 @@ def on_message(client, userdata, msg):
     except Exception as e:
         print(f'Error on calling the user-defined function', file=sys.stderr)
         print(e, file=sys.stderr)
-        client.publish('iotown/proc-done', msg.payload, 1)
+
+        if userdata['dry'] == False:
+            client.publish('iotown/proc-done', msg.payload, 1)
         return
 
+    if userdata['dry'] == True:
+        result = None
+    
     if type(result) is dict and 'data' in result.keys():
-        result = post.post_files(result, userdata['url'], userdata['token'])
+        result = post_files(result, userdata['url'], userdata['token'])
         message['data'] = result['data']
         client.publish('iotown/proc-done', json.dumps(message), 1)
     elif result is None:
@@ -81,7 +86,7 @@ def getTopic(url, token, name, verify=True, timeout=60):
         print(e)
         return None
 
-def connect(url, name, func, username, pw, mqtt_host=None, port=8883, verify=True):
+def connect(url, name, func, username, pw, mqtt_host=None, port=8883, verify=True, dry_run=False):
     # get Topic From IoTown
     topic = getTopic(url, pw, name, verify)
 
@@ -104,12 +109,13 @@ def connect(url, name, func, username, pw, mqtt_host=None, port=8883, verify=Tru
         "func": func,
         "group": group,
         "name": name,
+        "dry": dry_run,
     })
 
     if mqtt_host is None:
       mqtt_server = urlparse(url).hostname
     else:
-      mqtt_server = urlparse(mqtt_url).hostname
+      mqtt_server = mqtt_host
       
     print(f"Post process '{name}' is trying to connect to {mqtt_server}:{port}")
     client.tls_set(cert_reqs=ssl.CERT_NONE)
@@ -118,7 +124,7 @@ def connect(url, name, func, username, pw, mqtt_host=None, port=8883, verify=Tru
     client.subscribe(topic, 1)
     return client
 
-def connect_common(url, topic, func, username, pw, mqtt_host=None, port=8883):
+def connect_common(url, topic, func, username, pw, mqtt_host=None, port=8883, dry_run=False):
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
@@ -129,12 +135,13 @@ def connect_common(url, topic, func, username, pw, mqtt_host=None, port=8883):
         "func": func,
         "group": "common",
         "name": topic,
+        "dry": dry_run,
     })
 
     if mqtt_host is None:
       mqtt_server = urlparse(url).hostname
     else:
-      mqtt_server = urlparse(mqtt_url).hostname
+      mqtt_server = mqtt_host
 
     print(f"Post process '{topic}' is trying to Connect to {mqtt_server}:{port}")
     client.tls_set(cert_reqs=ssl.CERT_NONE)
