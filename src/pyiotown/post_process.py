@@ -86,7 +86,7 @@ def getTopic(url, token, name, verify=True, timeout=60):
         print(e)
         return None
 
-def connect(url, name, func, mqtt_host=None, port=8883, verify=True, dry_run=False):
+def connect(url, name, func, mqtt_url=None, verify=True, dry_run=False):
     url_parsed = urlparse(url)
     if url_parsed.username is None:
         raise Exception("The username is not specified.")
@@ -115,7 +115,6 @@ def connect(url, name, func, mqtt_host=None, port=8883, verify=True, dry_run=Fal
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
-    client.username_pw_set(username, token)
     client.user_data_set({
         "url": url,
         "token": token,
@@ -125,19 +124,33 @@ def connect(url, name, func, mqtt_host=None, port=8883, verify=True, dry_run=Fal
         "dry": dry_run,
     })
 
-    if mqtt_host is None:
-      mqtt_server = urlparse(url).hostname
+    if mqtt_url is None:
+        mqtt_host = urlparse(url).hostname
+        mqtt_port = 8883
+
     else:
-      mqtt_server = mqtt_host
-      
-    print(f"Post process '{name}' is trying to connect to {mqtt_server}:{port}")
+        url_parsed = urlparse(mqtt_url)
+        mqtt_host = url_parsed.hostname
+        mqtt_port = url_parsed.port
+        if mqtt_port is None:
+            mqtt_port = 8883
+
+        if url_parsed.username is not None:
+            username = url_parsed.username
+
+        if url_parsed.password is not None:
+            token = url_parsed.password
+
+    client.username_pw_set(username, token)
+    
+    print(f"Post process '{name}' is trying to connect to {mqtt_host}:{mqtt_port}")
     client.tls_set(cert_reqs=ssl.CERT_NONE)
     client.tls_insecure_set(True)
-    client.connect(mqtt_server, port=port)
+    client.connect(mqtt_host, port=mqtt_port)
     client.subscribe(topic, 1)
     return client
 
-def connect_common(url, topic, func, mqtt_host=None, port=8883, dry_run=False):
+def connect_common(url, topic, func, mqtt_url=None, dry_run=False):
     url_parsed = urlparse(url)
     if url_parsed.username is None:
         raise Exception("The username is not specified.")
@@ -154,7 +167,6 @@ def connect_common(url, topic, func, mqtt_host=None, port=8883, dry_run=False):
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
-    client.username_pw_set(username, token)
     client.user_data_set({
         "url": url,
         "token": token,
@@ -164,15 +176,27 @@ def connect_common(url, topic, func, mqtt_host=None, port=8883, dry_run=False):
         "dry": dry_run,
     })
 
-    if mqtt_host is None:
-      mqtt_server = urlparse(url).hostname
+    if mqtt_url is None:
+        mqtt_host = urlparse(url).hostname
+        mqtt_port = 8883
     else:
-      mqtt_server = mqtt_host
+        url_parsed = urlparse(mqtt_url)
+        mqtt_host = url_parsed.hostname
+        mqtt_port = url_parsed.port
+        if mqtt_port is None:
+            mqtt_port = 8883
 
-    print(f"Post process '{topic}' is trying to Connect to {mqtt_server}:{port}")
+        if url_parsed.username is not None:
+            username = url_parsed.username
+
+        if url_parsed.password is not None:
+            token = url_parsed.password
+
+    client.username_pw_set(username, token)
+    print(f"Post process '{topic}' is trying to Connect to {mqtt_host}:{mqtt_port}")
     client.tls_set(cert_reqs=ssl.CERT_NONE)
     client.tls_insecure_set(True)
-    client.connect(mqtt_server, port=port)
+    client.connect(mqtt_host, port=mqtt_port)
     client.subscribe(f'iotown/proc/common/{topic}', 1)
     return client
 
