@@ -86,9 +86,22 @@ def getTopic(url, token, name, verify=True, timeout=60):
         print(e)
         return None
 
-def connect(url, name, func, username, pw, mqtt_host=None, port=8883, verify=True, dry_run=False):
+def connect(url, name, func, mqtt_host=None, port=8883, verify=True, dry_run=False):
+    url_parsed = urlparse(url)
+    if url_parsed.username is None:
+        raise Exception("The username is not specified.")
+    username = url_parsed.username
+
+    if url_parsed.password is None:
+        raise Exception("The password (token) is not specified.")
+    token = url_parsed.password
+
+    url = f"{url_parsed.scheme}://{url_parsed.hostname}"
+    if url_parsed.port is not None:
+        url += f":{url_parsed.port}"
+    
     # get Topic From IoTown
-    topic = getTopic(url, pw, name, verify)
+    topic = getTopic(url, token, name, verify)
 
     if topic == None:
         raise Exception("IoT.own returned none")
@@ -98,14 +111,14 @@ def connect(url, name, func, username, pw, mqtt_host=None, port=8883, verify=Tru
     except Exception as e:
         raise Exception(f"Invalid topic {topic}")
     
-    updateExpire(url, pw, name, verify)
+    updateExpire(url, token, name, verify)
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
-    client.username_pw_set(username, pw)
+    client.username_pw_set(username, token)
     client.user_data_set({
         "url": url,
-        "token": pw,
+        "token": token,
         "func": func,
         "group": group,
         "name": name,
@@ -124,14 +137,27 @@ def connect(url, name, func, username, pw, mqtt_host=None, port=8883, verify=Tru
     client.subscribe(topic, 1)
     return client
 
-def connect_common(url, topic, func, username, pw, mqtt_host=None, port=8883, dry_run=False):
+def connect_common(url, topic, func, mqtt_host=None, port=8883, dry_run=False):
+    url_parsed = urlparse(url)
+    if url_parsed.username is None:
+        raise Exception("The username is not specified.")
+    username = url_parsed.username
+
+    if url_parsed.password is None:
+        raise Exception("The password (token) is not specified.")
+    token = url_parsed.password
+
+    url = f"{url_parsed.scheme}://{url_parsed.hostname}"
+    if url_parsed.port is not None:
+        url += f":{url_parsed.port}"
+
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
-    client.username_pw_set(username, pw)
+    client.username_pw_set(username, token)
     client.user_data_set({
         "url": url,
-        "token": pw,
+        "token": token,
         "func": func,
         "group": "common",
         "name": topic,
