@@ -34,7 +34,7 @@ def on_message(client, userdata, msg):
         print(f'Error on calling the user-defined function', file=sys.stderr)
         print(e, file=sys.stderr)
 
-        message['pp_error'][message['pp_list'][0]['name']] = f"Error on post process ({e})"
+        message['pp_error'][message['pp_list'][0]] = f"Error on post process ({e})"
 
         if userdata['dry'] == False:
             client.publish('iotown/proc-done', json.dumps(message), 1)
