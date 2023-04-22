@@ -44,7 +44,7 @@ def on_message(client, userdata, msg):
         result = None
     
     if type(result) is dict and 'data' in result.keys():
-        result = post_files(result, userdata['url'], userdata['token'])
+        result = post_files(result, userdata['url'], userdata['token'], userdata['verify'])
         message['data'] = result['data']
         client.publish('iotown/proc-done', json.dumps(message), 1)
     elif result is None:
@@ -123,6 +123,7 @@ def connect(url, name, func, mqtt_url=None, verify=True, dry_run=False):
         "func": func,
         "group": group,
         "name": name,
+        "verify": verify,
         "dry": dry_run,
     })
 
@@ -175,6 +176,7 @@ def connect_common(url, topic, func, mqtt_url=None, dry_run=False):
         "func": func,
         "group": "common",
         "name": topic,
+        "verify": False,
         "dry": dry_run,
     })
 
