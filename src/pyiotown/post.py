@@ -3,7 +3,7 @@ import requests
 import json
 import ssl
 
-def uploadImage(url, token, payload, verify=True, timeout=60):
+def uploadImage(url, token, payload, group_id=None, verify=True, timeout=60):
     '''
     url : IoT.own Server Address
     token : IoT.own API Token
@@ -11,6 +11,8 @@ def uploadImage(url, token, payload, verify=True, timeout=60):
     '''
     apiaddr = url + "/api/v1.0/nn/image"
     header = {'Content-Type': 'application/json', 'Token': token}
+    if group_id is not None:
+        header['grpid'] = group_id
     try:
         r = requests.post(apiaddr, data=payload, headers=header, verify=verify, timeout=timeout)
         if r.status_code == 200:
@@ -21,7 +23,7 @@ def uploadImage(url, token, payload, verify=True, timeout=60):
     except Exception as e:
         print(e)
         return False
-def data(url, token, nid, data, upload="", verify=True, timeout=60):
+def data(url, token, nid, data, upload="", group_id=None, verify=True, timeout=60):
     '''
     url : IoT.own Server Address
     token : IoT.own API Token
@@ -32,7 +34,9 @@ def data(url, token, nid, data, upload="", verify=True, timeout=60):
     typenum = "2" # 2 static 
     apiaddr = url + "/api/v1.0/data"
     if upload == "":
-        header = {'Accept':'application/json', 'token':token } 
+        header = {'Accept':'application/json', 'token':token }
+        if group_id is not None:
+            header['grpid'] = group_id
         payload = { "type" : typenum, "nid" : nid, "data": data }
         try:
             r = requests.post(apiaddr, json=payload, headers=header, verify=verify, timeout=timeout)
@@ -45,7 +49,9 @@ def data(url, token, nid, data, upload="", verify=True, timeout=60):
             print(e)
             return False
     else:
-        header = {'Accept':'application/json', 'token':token } 
+        header = {'Accept':'application/json', 'token':token }
+        if group_id is not None:
+            header['grpid'] = group_id
         payload = { "type" : typenum, "nid" : nid, "meta": json.dumps(data) }
         try:
             r = requests.post(apiaddr, data=payload, headers=header, verify=verify, timeout=timeout, files=upload)
@@ -58,7 +64,7 @@ def data(url, token, nid, data, upload="", verify=True, timeout=60):
             print(e)
             return False
 
-def post_files(result, url, token, verify=True, timeout=60):
+def post_files(result, url, token, group_id=None, verify=True, timeout=60):
     if 'data' not in result.keys():
         return result
     
@@ -67,6 +73,8 @@ def post_files(result, url, token, verify=True, timeout=60):
             resultkey = result['data'][key].keys()
             if ('raw' in resultkey) and ( 'file_type' in resultkey) :
                 header = {'Accept':'application/json', 'token':token }
+                if group_id is not None:
+                    header['grpid'] = group_id
                 upload = { key + "file": result['data'][key]['raw'] }
                 try:
                     r = requests.post( url + "/api/v1.0/file", headers=header, verify=verify, timeout=timeout, files=upload )

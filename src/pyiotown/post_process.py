@@ -44,7 +44,8 @@ def on_message(client, userdata, msg):
         result = None
     
     if type(result) is dict and 'data' in result.keys():
-        result = post_files(result, userdata['url'], userdata['token'], userdata['verify'])
+        group_id = data['grpid'] if userdata['group'] == 'common' else None
+        result = post_files(result, userdata['url'], userdata['token'], group_id, userdata['verify'])
         message['data'] = result['data']
         client.publish('iotown/proc-done', json.dumps(message), 1)
     elif result is None:
