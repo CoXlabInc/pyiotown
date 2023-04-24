@@ -75,16 +75,15 @@ def post_files(result, url, token, group_id=None, verify=True, timeout=60):
                 header = {'Accept':'application/json', 'token':token }
                 if group_id is not None:
                     header['grpid'] = group_id
-                upload = { key + "file": result['data'][key]['raw'] }
+                upload = { key: result['data'][key]['raw'] }
                 try:
                     r = requests.post( url + "/api/v1.0/file", headers=header, verify=verify, timeout=timeout, files=upload )
                     if r.status_code == 200:
                         del result['data'][key]['raw']
                         result['data'][key]['file_id'] = r.json()["files"][0]["file_id"]
-                        result['data'][key]['file_ext'] = r.json()["files"][0]["file_ext"]
                         result['data'][key]['file_size'] = r.json()["files"][0]["file_size"]
                     else:
-                        print("[ Error ] while send Files to IoT.own. check file format ['raw, file_type]")
+                        print("[ Error ] while send Files to IoT.own. check file format [raw, file_type]")
                         print(r.content)
                 except Exception as e:
                     print(e)
