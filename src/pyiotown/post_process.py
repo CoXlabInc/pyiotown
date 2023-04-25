@@ -41,15 +41,20 @@ def on_message(client, userdata, msg):
         return
 
     if userdata['dry'] == True:
-        result = None
+        print(f"Discard the message for dry-run")
+        return
+
+    if result is None:
+        print(f"Discard the message")
+        del message['pp_list']
+        client.publish('iotown/proc-done', json.dumps(message), 1)
+        return
     
     if type(result) is dict and 'data' in result.keys():
         group_id = data['grpid'] if userdata['group'] == 'common' else None
         result = post_files(result, userdata['url'], userdata['token'], group_id, userdata['verify'])
         message['data'] = result['data']
         client.publish('iotown/proc-done', json.dumps(message), 1)
-    elif result is None:
-        print(f"Discard the message")
     else:
         print(f"CALLBACK FUNCTION TYPE ERROR {type(result)} must [ dict ]", file=sys.stderr)
         client.publish('iotown/proc-done', msg.payload, 1)
