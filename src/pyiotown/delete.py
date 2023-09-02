@@ -17,7 +17,7 @@ def data(url, token, _id=None, nid=None, date_from=None, date_to=None, group_id=
     
     if nid is not None:
         params['nid'] = nid
-    else if _id is not None:
+    elif _id is not None:
         params['_id'] = _id
         
     if date_from is not None:
