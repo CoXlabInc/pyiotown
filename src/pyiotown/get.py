@@ -40,19 +40,19 @@ def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort
     params = []
     
     if nid != None:
-        params.append("nid=" + nid)
+        params.append(f"nid={nid}")
         
     if date_from != None:
-        params.append("from=" + date_from)
+        params.append(f"from={date_from}")
 
     if date_to != None:
-        params.append("to=" + date_to)
+        params.append(f"to={date_to}")
 
     if count != None:
-        params.append("count=" + count)
+        params.append(f"count={count}")
 
     if sort != None:
-        params.append("sort=" + sort)
+        params.append(f"sort={sort}")
 
     if len(params) > 0:
         uri_prefix += '?' + '&'.join(params)
