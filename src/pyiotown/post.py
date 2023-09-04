@@ -23,6 +23,7 @@ def uploadImage(url, token, payload, group_id=None, verify=True, timeout=60):
     except Exception as e:
         print(e)
         return False
+
 def data(url, token, nid, data, upload="", group_id=None, verify=True, timeout=60):
     '''
     url : IoT.own Server Address
@@ -63,6 +64,44 @@ def data(url, token, nid, data, upload="", group_id=None, verify=True, timeout=6
         except Exception as e:
             print(e)
             return False
+
+def command(url, token, nid, command, lorawan=None, group_id=None, verify=True, timeout=60):
+    uri = url + "/api/v1.0/command"
+    header = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'token': token
+    }
+
+    if group_id is not None:
+        header['grpid'] = group_id
+
+    payload = {
+        'nid': nid,
+    }
+
+    if type(command) is str:
+        payload['type'] = 'string'
+        payload['command'] = command
+    elif type(command) is bytes:
+        payload['type'] = 'hex'
+        payload['command'] = command.hex()
+    else:
+        raise Exception("The type of 'command' must be either str or bytes.")
+
+    if lorawan is not None:
+        payload['lorawan'] = lorawan
+    
+    try:
+        r = requests.post(uri, json=payload, headers=header, verify=verify, timeout=timeout)
+        if r.status_code == 200:
+            return True
+        else:
+            print(r.content)
+            return False
+    except Exception as e:
+        print(e)
+        return False
 
 def post_files(result, url, token, group_id=None, verify=True, timeout=60):
     if 'data' not in result.keys():
