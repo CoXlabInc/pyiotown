@@ -31,8 +31,7 @@ def on_message(client, userdata, msg):
     try:
         result = userdata['func'](data)
     except Exception as e:
-        print(f'Error on calling the user-defined function', file=sys.stderr)
-        print(e, file=sys.stderr)
+        print(f"Error on calling the user-defined function for PP '{userdata['name']}' of '{userdata['group']}': {e}", file=sys.stderr)
 
         message['pp_error'][message['pp_list'][0]] = f"Error on post process ({e})"
 
