@@ -5,6 +5,7 @@ import paho.mqtt.client as mqtt
 import sys
 import os
 import ssl
+import traceback
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -35,6 +36,7 @@ def on_message(client, userdata, msg):
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         print(f"Error on calling the user-defined function for PP '{userdata['name']}' of '{userdata['group']}': {exc_type} at {fname} ({exc_tb.tb_lineno})", file=sys.stderr)
+        print(traceback.format_exc(), file=sys.stderr)
 
         message['pp_error'][message['pp_list'][0]] = f"Error on post process ({e})"
 
