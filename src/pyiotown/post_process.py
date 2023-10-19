@@ -38,6 +38,7 @@ def on_message(client, userdata, msg):
                 trace += ","
             trace += f"{tb.tb_frame.f_code.co_name}({tb.tb_frame.f_code.co_filename}:{tb.tb_lineno})"
             tb = tb.tb_next
+        trace = f"<{type(e).__name__}> {str(e)} " + trace
         print(f"Error on calling the user-defined function for PP '{userdata['name']}' of '{userdata['group']}': {trace}", file=sys.stderr)
 
         message['pp_error'][message['pp_list'][0]] = f"Error on post process ({trace})"
