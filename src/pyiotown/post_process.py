@@ -3,9 +3,7 @@ import json
 from urllib.parse import urlparse
 import paho.mqtt.client as mqtt
 import sys
-import os
 import ssl
-import traceback
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -33,12 +31,16 @@ def on_message(client, userdata, msg):
     try:
         result = userdata['func'](data)
     except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(f"Error on calling the user-defined function for PP '{userdata['name']}' of '{userdata['group']}': {exc_type} at {fname} ({exc_tb.tb_lineno})", file=sys.stderr)
-        print(traceback.format_exc(), file=sys.stderr)
+        trace = ""
+        tb = e.__traceback__
+        while tb is not None:
+            if len(trace) > 0:
+                trace += ","
+            trace += f"{tb.tb_frame.f_code.co_name}({tb.tb_frame.f_code.co_filename}:{tb.tb_lineno})"
+            tb = tb.tb_next
+        print(f"Error on calling the user-defined function for PP '{userdata['name']}' of '{userdata['group']}': {trace}", file=sys.stderr)
 
-        message['pp_error'][message['pp_list'][0]] = f"Error on post process ({e})"
+        message['pp_error'][message['pp_list'][0]] = f"Error on post process ({trace})"
 
         if userdata['dry'] == False:
             client.publish('iotown/proc-done', json.dumps(message), 1)
