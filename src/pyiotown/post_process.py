@@ -3,6 +3,7 @@ import json
 from urllib.parse import urlparse
 import paho.mqtt.client as mqtt
 import sys
+import os
 import ssl
 
 def on_connect(client, userdata, flags, rc):
@@ -31,7 +32,9 @@ def on_message(client, userdata, msg):
     try:
         result = userdata['func'](data)
     except Exception as e:
-        print(f"Error on calling the user-defined function for PP '{userdata['name']}' of '{userdata['group']}': {e}", file=sys.stderr)
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(f"Error on calling the user-defined function for PP '{userdata['name']}' of '{userdata['group']}': {exc_type} at {fname} ({exc_tb.tb_lineno})", file=sys.stderr)
 
         message['pp_error'][message['pp_list'][0]] = f"Error on post process ({e})"
 
