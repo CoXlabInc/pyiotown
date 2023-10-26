@@ -96,7 +96,7 @@ def command(url, token, nid, group_id=None, verify=True, timeout=60):
     try:
         r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
         if r.status_code == 200:
-            return r.content
+            return r.json()
         else:
             print(r)
             return None
