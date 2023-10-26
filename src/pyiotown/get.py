@@ -83,6 +83,23 @@ def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort
             print(r)
             return None
 
+def command(url, token, nid, group_id=None, verify=True, timeout=60):
+    uri = f"{url}/api/v1.0/command/{nid}"
+    header = {
+        'Accept': 'application/json',
+        'token': token
+    }
+    try:
+        r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
+        if r.status_code == 200:
+            return r.content
+        else:
+            print(r)
+            return None
+    except Exception as e:
+        print(e)
+        return None
+
 def downloadImage(url, token, imageID, verify=True, timeout=60):
     ''' 
     url : IoT.own Server Address
