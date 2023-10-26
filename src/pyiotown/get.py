@@ -89,6 +89,10 @@ def command(url, token, nid, group_id=None, verify=True, timeout=60):
         'Accept': 'application/json',
         'token': token
     }
+
+    if group_id is not None:
+        header['grpid'] = group_id
+
     try:
         r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
         if r.status_code == 200:
