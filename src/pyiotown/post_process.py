@@ -41,7 +41,7 @@ def on_message(client, userdata, msg):
         trace = f"<{type(e).__name__}> {str(e)} [ {trace} ]"
         print(f"Error on calling the user-defined function for PP '{userdata['name']}' of '{userdata['group']}': {trace}", file=sys.stderr)
 
-        message['pp_error'][message['pp_list'][0]] = f"Error on post process ({trace})"
+        message['pp_error'][message['pp_list'][0]['name']] = f"Error on post process ({trace})"
 
         if userdata['dry'] == False:
             client.publish('iotown/proc-done', json.dumps(message), 1)
