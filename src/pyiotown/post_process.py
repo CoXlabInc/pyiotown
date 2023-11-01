@@ -15,6 +15,12 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     message = json.loads((msg.payload).decode('utf-8'))
 
+    topic_levels = msg.topic.split('/')
+    if len(topic_levels) > 4:
+        param = topic_levels[4]
+    else:
+        param = None
+
     if userdata['group'] == 'common':
         # Common post process
         data = message
@@ -29,7 +35,7 @@ def on_message(client, userdata, msg):
             data['lora_meta'] = message['lora_meta']
     
     try:
-        result = userdata['func'](data)
+        result = userdata['func'](data, param)
     except Exception as e:
         trace = ""
         tb = e.__traceback__
@@ -167,7 +173,7 @@ def connect(url, name, func, mqtt_url=None, verify=True, dry_run=False):
     client.tls_set(cert_reqs=ssl.CERT_NONE)
     client.tls_insecure_set(True)
     client.connect(mqtt_host, port=mqtt_port)
-    client.subscribe(topic, 1)
+    client.subscribe([(topic, 1), (topic + '/+', 1)])
     return client
 
 def connect_common(url, topic, func, mqtt_url=None, dry_run=False):
@@ -218,7 +224,7 @@ def connect_common(url, topic, func, mqtt_url=None, dry_run=False):
     client.tls_set(cert_reqs=ssl.CERT_NONE)
     client.tls_insecure_set(True)
     client.connect(mqtt_host, port=mqtt_port)
-    client.subscribe(f'iotown/proc/common/{topic}', 1)
+    client.subscribe([(f'iotown/proc/common/{topic}', 1), (f'iotown/proc/common/{topic}/+', 1)])
     return client
 
 def loop_forever(clients):
