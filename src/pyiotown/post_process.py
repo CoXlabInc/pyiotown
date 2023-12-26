@@ -13,70 +13,73 @@ def on_connect(client, userdata, flags, rc):
         print("Bad connection Reason",rc)
 
 def on_message(client, userdata, msg):
-    message = json.loads((msg.payload).decode('utf-8'))
-
-    topic_levels = msg.topic.split('/')
-    if len(topic_levels) > 4:
-        param = topic_levels[4]
-    else:
-        param = None
-
-    if userdata['group'] == 'common':
-        # Common post process
-        data = message
-    else:
-        # User-specific post process
-        data = { 'gid': message['gid'],
-                 'nid': message['nid'],
-                 'data': message['data'],
-                 'ntype': message['ntype'],
-                 'ndesc': message['ndesc'] }
-        if 'lora_meta' in message.keys():
-            data['lora_meta'] = message['lora_meta']
-    
     try:
-        result = userdata['func'](data, param)
-    except Exception as e:
-        trace = ""
-        tb = e.__traceback__
-        while tb is not None:
-            if len(trace) > 0:
-                trace += ","
-            trace += f"{tb.tb_frame.f_code.co_name}({tb.tb_frame.f_code.co_filename}:{tb.tb_lineno})"
-            tb = tb.tb_next
-        trace = f"<{type(e).__name__}> {str(e)} [ {trace} ]"
-        print(f"Error on calling the user-defined function for PP '{userdata['name']}' of '{userdata['group']}': {trace}", file=sys.stderr)
+        message = json.loads((msg.payload).decode('utf-8'))
 
-        message['pp_error'][message['pp_list'][0]['name']] = f"Error on post process ({trace})"
+        topic_levels = msg.topic.split('/')
+        if len(topic_levels) > 4:
+            param = topic_levels[4]
+        else:
+            param = None
 
-        if userdata['dry'] == False:
-            client.publish('iotown/proc-done', json.dumps(message), 1)
-        return
-
-    if userdata['dry'] == True:
-        print(f"Discard the message for dry-run")
-        return
-
-    if result is None:
-        print(f"Discard the message")
-        del message['pp_list']
-        client.publish('iotown/proc-done', json.dumps(message), 1)
-        return
+        if userdata['group'] == 'common':
+            # Common post process
+            data = message
+        else:
+            # User-specific post process
+            data = { 'gid': message.get('gid'),
+                     'nid': message.get('nid'),
+                     'data': message.get('data'),
+                     'ntype': message.get('ntype'),
+                     'ndesc': message.get('ndesc') }
+            lora_meta = message.get('lora_meta')
+            if lora_meta is not None:
+                data['lora_meta'] = lora_meta
     
-    if type(result) is dict and 'data' in result.keys():
-        group_id = data['grpid'] if userdata['group'] == 'common' else None
-        result = post_files(result, userdata['url'], userdata['token'], group_id, userdata['verify'])
-        message['data'] = result['data']
         try:
-            client.publish('iotown/proc-done', json.dumps(message), 1)
+            result = userdata['func'](data, param)
         except Exception as e:
-            print(e)
-            print(message)
-    else:
-        print(f"CALLBACK FUNCTION TYPE ERROR {type(result)} must [ dict ]", file=sys.stderr)
-        client.publish('iotown/proc-done', msg.payload, 1)
+            trace = ""
+            tb = e.__traceback__
+            while tb is not None:
+                if len(trace) > 0:
+                    trace += ","
+                trace += f"{tb.tb_frame.f_code.co_name}({tb.tb_frame.f_code.co_filename}:{tb.tb_lineno})"
+                tb = tb.tb_next
+            trace = f"<{type(e).__name__}> {str(e)} [ {trace} ]"
+            print(f"Error on calling the user-defined function for PP '{userdata['name']}' of '{userdata['group']}': {trace}", file=sys.stderr)
 
+            message['pp_error'][message['pp_list'][0]['name']] = f"Error on post process ({trace})"
+
+            if userdata['dry'] == False:
+                client.publish('iotown/proc-done', json.dumps(message), 1)
+                return
+
+        if userdata['dry'] == True:
+            print(f"Discard the message for dry-run")
+            return
+
+        if result is None:
+            print(f"Discard the message")
+            del message['pp_list']
+            client.publish('iotown/proc-done', json.dumps(message), 1)
+            return
     
+        if type(result) is dict and 'data' in result.keys():
+            group_id = data['grpid'] if userdata['group'] == 'common' else None
+            result = post_files(result, userdata['url'], userdata['token'], group_id, userdata['verify'])
+            message['data'] = result['data']
+            try:
+                client.publish('iotown/proc-done', json.dumps(message), 1)
+            except Exception as e:
+                print(e)
+                print(message)
+        else:
+            print(f"CALLBACK FUNCTION TYPE ERROR {type(result)} must [ dict ]", file=sys.stderr)
+            client.publish('iotown/proc-done', msg.payload, 1)
+    except Exception as e:
+        print(e, file=sys.stderr)
+
 def updateExpire(url, token, name, verify=True, timeout=60):
     apiaddr = url + "/api/v1.0/pp/proc"
     header = {'Accept':'application/json', 'token':token}
