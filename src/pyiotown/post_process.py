@@ -10,8 +10,14 @@ def on_connect(client, userdata, flags, rc):
         name = userdata['name']
         print(f"Post process '{name}' Connect OK! Subscribe Start")
     else:
-        print("Bad connection Reason",rc)
+        print(f"Bad connection (reason: {rc}", file=sys.stderr)
+        sys.exit(rc)
 
+def on_disconnect(client, userdata, rc):
+    if rc != 0:
+        print(f"Post process '{userdata['name']}' disconnected unexpectedly (reason:{rc})", file=sys.stderr)
+        sys.exit(rc)
+        
 def on_message(client, userdata, msg):
     try:
         message = json.loads((msg.payload).decode('utf-8'))
