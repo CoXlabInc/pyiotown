@@ -5,16 +5,16 @@ import paho.mqtt.client as mqtt
 import sys
 import ssl
 
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
+def on_connect(client, userdata, flags, reason_code, properties):
+    if reason_code == 0:
         name = userdata['name']
         print(f"Post process '{name}' Connect OK! Subscribe Start")
     else:
         print(f"Bad connection (reason: {rc}", file=sys.stderr)
         sys.exit(rc)
 
-def on_disconnect(client, userdata, rc):
-    if rc != 0:
+def on_disconnect(client, userdata, flags, reason_code, properties):
+    if reason_code != 0:
         print(f"Post process '{userdata['name']}' disconnected unexpectedly (reason:{rc})", file=sys.stderr)
         sys.exit(rc)
         
@@ -143,7 +143,7 @@ def connect(url, name, func, mqtt_url=None, verify=True, dry_run=False):
         raise Exception(f"Invalid topic {topic}")
     
     updateExpire(url, token, name, verify)
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.on_connect = on_connect
     client.on_message = on_message
     client.user_data_set({
@@ -196,7 +196,7 @@ def connect_common(url, topic, func, mqtt_url=None, dry_run=False):
     if url_parsed.port is not None:
         url += f":{url_parsed.port}"
 
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.on_connect = on_connect
     client.on_message = on_message
     client.user_data_set({
