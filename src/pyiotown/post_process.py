@@ -38,11 +38,9 @@ def on_message(client, userdata, msg):
                      'data': message.get('data'),
                      'ntype': message.get('ntype'),
                      'ndesc': message.get('ndesc') }
-            lora_meta = message.get('lora_meta')
-            if lora_meta is not None:
-                data['lora_meta'] = lora_meta
     
         try:
+            print(f"[pyiotown] call data:{data}, param:{param}")
             result = userdata['func'](data, param)
         except Exception as e:
             trace = ""
