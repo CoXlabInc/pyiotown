@@ -40,7 +40,6 @@ def on_message(client, userdata, msg):
                      'ndesc': message.get('ndesc') }
     
         try:
-            print(f"[pyiotown] call data:{data}, param:{param}")
             result = userdata['func'](data, param)
         except Exception as e:
             trace = ""
