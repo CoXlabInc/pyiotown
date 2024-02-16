@@ -3,7 +3,7 @@ requires = [
     "setuptools>=42",
     "wheel",
     "requests",
-    "paho-mqtt",
+    "paho-mqtt>=2",
     "pbr"
 ]
 build-backend = "pbr.build"

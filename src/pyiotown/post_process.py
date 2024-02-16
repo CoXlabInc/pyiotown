@@ -84,7 +84,7 @@ def on_message(client, userdata, msg):
             print(f"CALLBACK FUNCTION TYPE ERROR {type(result)} must [ dict ]", file=sys.stderr)
             client.publish('iotown/proc-done', msg.payload, 1)
     except Exception as e:
-        print(e, file=sys.stderr)
+        print(f"[pyiotown] {e}", file=sys.stderr)
 
 def updateExpire(url, token, name, verify=True, timeout=60):
     apiaddr = url + "/api/v1.0/pp/proc"
@@ -146,7 +146,7 @@ def connect(url, name, func, mqtt_url=None, verify=True, dry_run=False):
         raise Exception(f"Invalid topic {topic}")
     
     updateExpire(url, token, name, verify)
-    client = mqtt.Client()
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
     client.on_connect = on_connect
     client.on_message = on_message
     client.user_data_set({
