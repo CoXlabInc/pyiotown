@@ -199,7 +199,7 @@ def connect_common(url, topic, func, mqtt_url=None, dry_run=False):
     if url_parsed.port is not None:
         url += f":{url_parsed.port}"
 
-    client = mqtt.Client()
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
     client.on_connect = on_connect
     client.on_message = on_message
     client.user_data_set({
