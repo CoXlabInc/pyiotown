@@ -7,7 +7,7 @@ import ssl
 
 def on_connect(client, userdata, flags, reason_code, properties):
     if reason_code.is_failure:
-        print(f"Bad connection (reason: {reason_code.getName()}", file=sys.stderr)
+        print(f"Bad connection (reason: {reason_code.getName()})", file=sys.stderr)
         sys.exit(3)
     else:
         name = userdata['name']
