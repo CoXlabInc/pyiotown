@@ -6,17 +6,17 @@ import sys
 import ssl
 
 def on_connect(client, userdata, flags, reason_code, properties):
-    if reason_code == 0:
+    if reason_code.is_failure:
+        print(f"Bad connection (reason: {reason_code.getName()}", file=sys.stderr)
+        sys.exit(3)
+    else:
         name = userdata['name']
         print(f"Post process '{name}' Connect OK! Subscribe Start")
-    else:
-        print(f"Bad connection (reason: {rc}", file=sys.stderr)
-        sys.exit(rc)
 
 def on_disconnect(client, userdata, flags, reason_code, properties):
-    if reason_code != 0:
-        print(f"Post process '{userdata['name']}' disconnected unexpectedly (reason:{rc})", file=sys.stderr)
-        sys.exit(rc)
+    if reason_code.is_failure:
+        print(f"Post process '{userdata['name']}' disconnected unexpectedly (reason:{reason_code.getName()})", file=sys.stderr)
+        sys.exit(3)
         
 def on_message(client, userdata, msg):
     try:
