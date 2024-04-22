@@ -22,7 +22,7 @@ def node(url, token, nid=None, group_id=None, verify=True, timeout=60):
         print(r)
         return None
     
-def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort=None, lastKey="", group_id=None, verify=True, timeout=60):
+def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort=None, lastKey=None, consolidate=True, group_id=None, verify=True, timeout=60):
     '''
     url : IoT.own Server Address
     token : IoT.own API Token
@@ -39,19 +39,19 @@ def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort
 
     params = []
     
-    if nid != None:
+    if nid is not None:
         params.append(f"nid={nid}")
         
-    if date_from != None:
+    if date_from is not None:
         params.append(f"from={date_from}")
 
-    if date_to != None:
+    if date_to is not None:
         params.append(f"to={date_to}")
 
-    if count != None:
+    if count is not None:
         params.append(f"count={count}")
 
-    if sort != None:
+    if sort is not None:
         params.append(f"sort={sort}")
 
     if len(params) > 0:
@@ -61,22 +61,30 @@ def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort
     
     while True:
         try:
-            uri = uri_prefix if lastKey == "" else uri_prefix + "&lastKey=" + lastKey
+            uri = uri_prefix if lastKey is None else uri_prefix + "&lastKey=" + lastKey
+            print(uri)
             r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
         except Exception as e:
             print(e)
             return None
     
         if r.status_code == 200:
+            data_obj = r.json()
             if result is None:
-                result = r.json()
-                if 'lastKey' in result.keys():
-                    del result['lastKey']
+                # at first
+                result = data_obj
+                
+                # if 'lastKey' in result.keys():
+                #     del result['lastKey']
             else:
-                result['data'] += r.json()['data']
+                result['data'] += data_obj['data']
+                if 'lastKey' in data_obj.keys():
+                    result['lastKey'] = data_obj['lastKey']
+                elif 'lastKey' in result.keys():
+                    del result['lastKey']
 
-            if 'lastKey' in r.json().keys():
-                lastKey = r.json()['lastKey']
+            if consolidate == True and 'lastKey' in result.keys():
+                lastKey = result['lastKey']
             else:
                 return result
         else:
