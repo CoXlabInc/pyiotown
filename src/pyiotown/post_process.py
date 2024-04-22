@@ -4,6 +4,8 @@ from urllib.parse import urlparse
 import paho.mqtt.client as mqtt
 import sys
 import ssl
+import requests
+import threading
 
 def on_connect(client, userdata, flags, reason_code, properties):
     if reason_code.is_failure:
