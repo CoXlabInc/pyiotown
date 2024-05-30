@@ -102,22 +102,13 @@ def getTopic(url, token, name, verify=True, timeout=60):
     apiaddr = url + "/api/v1.0/pp/proc"
     header = {'Accept':'application/json', 'token':token}
     payload = {'name':name}    
-    try:
-        r = requests.post(apiaddr, json=payload, headers=header, verify=verify, timeout=timeout)
-        if r.status_code == 200:
-            topic = json.loads((r.content).decode('utf-8'))['topic']
-            #print(f"Get Topic From IoT.own Success: {topic}")
-            return topic
-        elif r.status_code == 403:
-            topic = json.loads((r.content).decode('utf-8'))['topic']
-            #print(f"process already in use. please restart after 1 minute later.: {topic}")
-            return topic
-        else:
-            print(r)
-            return None
-    except Exception as e:
-        print(e)
-        return None
+
+    r = requests.post(apiaddr, json=payload, headers=header, verify=verify, timeout=timeout)
+    if r.status_code == 200 or r.status_code == 403: # Same with 200 (deprecated)
+        topic = json.loads((r.content).decode('utf-8'))['topic']
+        return topic
+    else:
+        raise Exception(r.content.decode('utf-8'))
 
 def connect(url, name, func, mqtt_url=None, verify=True, dry_run=False):
     url_parsed = urlparse(url)
@@ -137,7 +128,7 @@ def connect(url, name, func, mqtt_url=None, verify=True, dry_run=False):
     topic = getTopic(url, token, name, verify)
 
     if topic == None:
-        raise Exception("IoT.own returned none")
+        raise Exception("The server does not assign a topic for you.")
 
     try:
         group = topic.split('/')[2]
