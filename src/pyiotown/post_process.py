@@ -30,7 +30,7 @@ def on_message(client, userdata, msg):
         else:
             param = None
 
-        data = message
+        data = message.copy()
         data.pop('pp_list', None)
         data.pop('pp_error', None)
         data['pp_warning'] = ''
