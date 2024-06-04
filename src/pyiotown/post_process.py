@@ -30,17 +30,11 @@ def on_message(client, userdata, msg):
         else:
             param = None
 
-        if userdata['group'] == 'common':
-            # Common post process
-            data = message
-        else:
-            # User-specific post process
-            data = { 'gid': message.get('gid'),
-                     'nid': message.get('nid'),
-                     'data': message.get('data'),
-                     'ntype': message.get('ntype'),
-                     'ndesc': message.get('ndesc') }
-    
+        data = message
+        data.pop('pp_list', None)
+        data.pop('pp_error', None)
+        data['pp_warning'] = ''
+
         try:
             result = userdata['func'](data, param)
         except Exception as e:
@@ -71,7 +65,11 @@ def on_message(client, userdata, msg):
             return
     
         if type(result) is dict and 'data' in result.keys():
-            group_id = data['grpid'] if userdata['group'] == 'common' else None
+            pp_warning = result.get('pp_warning')
+            if pp_warning is not None and type(pp_error) is str and len(pp_error) > 0:
+                message['pp_error'][message['pp_list'][0]['name']] = f"Warning on post process ({pp_warning})"
+
+            group_id = message['grpid'] if userdata['group'] == 'common' else None
             result = post_files(result, userdata['url'], userdata['token'], group_id, userdata['verify'])
             message['data'] = result['data']
             try:
