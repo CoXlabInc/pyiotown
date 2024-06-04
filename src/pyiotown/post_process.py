@@ -66,7 +66,7 @@ def on_message(client, userdata, msg):
     
         if type(result) is dict and 'data' in result.keys():
             pp_warning = result.get('pp_warning')
-            if pp_warning is not None and type(pp_error) is str and len(pp_error) > 0:
+            if pp_warning is not None and type(pp_warning) is str and len(pp_warning) > 0:
                 message['pp_error'][message['pp_list'][0]['name']] = f"Warning on post process ({pp_warning})"
 
             group_id = message['grpid'] if userdata['group'] == 'common' else None
