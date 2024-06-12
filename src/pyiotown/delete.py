@@ -37,4 +37,5 @@ def data(url, token, _id=None, nid=None, date_from=None, date_to=None, group_id=
     if r.status_code == 200:
         return r.json()
     else:
+        print(r.__dict__)
         return None
