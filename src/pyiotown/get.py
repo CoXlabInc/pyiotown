@@ -17,10 +17,10 @@ def node(url, token, nid=None, group_id=None, verify=True, timeout=60):
         return None
     
     if r.status_code == 200:
-        return r.json()
+        return r.json().node
     else:
         print(r)
-        return None
+        raise Exception(r)
     
 def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort=None, lastKey=None, consolidate=True, group_id=None, verify=True, timeout=60):
     '''
