@@ -3,3 +3,5 @@ setuptools
 wheel
 requests
 paho-mqtt >= 2.0.0
+asyncio
+aiohttp

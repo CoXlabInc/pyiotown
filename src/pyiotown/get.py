@@ -1,5 +1,8 @@
 import requests
 import datetime
+import ssl
+import asyncio
+import aiohttp
 
 def node(url, token, nid=None, group_id=None, verify=True, timeout=60):
     header = {'Accept':'application/json','token':token}
@@ -17,10 +20,10 @@ def node(url, token, nid=None, group_id=None, verify=True, timeout=60):
         return None
     
     if r.status_code == 200:
-        return r.json().node
+        return r.json()['node']
     else:
         print(r)
-        raise Exception(r)
+        raise Exception(r.content)
     
 def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort=None, lastKey=None, consolidate=True, group_id=None, verify=True, timeout=60):
     '''
@@ -91,7 +94,7 @@ def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort
             print(r)
             return None
 
-def command(url, token, nid, group_id=None, verify=True, timeout=60):
+def command_common(url, token, nid, group_id):
     uri = f"{url}/api/v1.0/command/{nid}"
     header = {
         'Accept': 'application/json',
@@ -101,16 +104,30 @@ def command(url, token, nid, group_id=None, verify=True, timeout=60):
     if group_id is not None:
         header['grpid'] = group_id
 
+    return uri, header
+
+def command(url, token, nid, group_id=None, verify=True, timeout=60):
+    uri, header = command_common(uri, token, nid, group_id)
+
     try:
         r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
         if r.status_code == 200:
-            return r.json()
+            return True, r.json()
         else:
-            print(r)
-            return None
+            return False, r.json()
     except Exception as e:
         print(e)
-        return None
+        return False, None
+
+async def async_command(url, token, nid, group_id=None, verify=True, timeout=60):
+    uri, header = command_common(url, token, nid, group_id)
+
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=True, verify_ssl=verify)) as session:
+        async with session.get(uri, headers=header) as response:
+            if response.status == 200:
+                return True, await response.json()
+            else:
+                return False, await response.json()
 
 def downloadImage(url, token, imageID, verify=True, timeout=60):
     ''' 

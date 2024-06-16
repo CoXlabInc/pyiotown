@@ -2,6 +2,8 @@ import sys
 import requests
 import json
 import ssl
+import asyncio
+import aiohttp
 
 def uploadImage(url, token, payload, group_id=None, verify=True, timeout=60):
     '''
@@ -65,7 +67,7 @@ def data(url, token, nid, data, upload="", group_id=None, verify=True, timeout=6
             print(e)
             return False
 
-def command(url, token, nid, command, lorawan=None, group_id=None, verify=True, timeout=60):
+def command_common(url, token, nid, command, lorawan, group_id):
     uri = url + "/api/v1.0/command"
     header = {
         'Accept': 'application/json',
@@ -87,14 +89,30 @@ def command(url, token, nid, command, lorawan=None, group_id=None, verify=True, 
         payload['type'] = 'hex'
         payload['command'] = command.hex()
     else:
-        raise Exception("The type of 'command' must be either str or bytes.")
+        raise Exception(f"The type of 'command' must be either str or bytes, but f{type(command)}")
 
     if lorawan is not None:
         payload['lorawan'] = lorawan
+
+    return uri, header, payload
+    
+async def async_command(url, token, nid, command, lorawan=None, group_id=None, verify=True, timeout=60):
+    uri, header, payload = command_common(url, token, nid, command, lorawan, group_id)
+
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=True, verify_ssl=verify)) as session:
+        async with session.post(uri, headers=header, json=payload) as response:
+            if response.status == 200:
+                return True, await response.json()
+            else:
+                return False, await response.json()
+    
+def command(url, token, nid, command, lorawan=None, group_id=None, verify=True, timeout=60):
+    uri, header, payload = command_common(url, token, nid, command, lorawan, group_id)
     
     try:
         r = requests.post(uri, json=payload, headers=header, verify=verify, timeout=timeout)
         if r.status_code == 200:
+            print(r.content)
             return True
         else:
             print(r.content)
