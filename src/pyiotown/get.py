@@ -107,7 +107,7 @@ def command_common(url, token, nid, group_id):
     return uri, header
 
 def command(url, token, nid, group_id=None, verify=True, timeout=60):
-    uri, header = command_common(uri, token, nid, group_id)
+    uri, header = command_common(url, token, nid, group_id)
 
     try:
         r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
