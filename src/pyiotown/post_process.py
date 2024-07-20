@@ -13,7 +13,7 @@ def on_connect(client, userdata, flags, reason_code, properties):
         sys.exit(3)
     else:
         name = userdata['name']
-        print(f"Post process '{name}' Connect OK! Subscribe Start")
+        print(f"Post process '{name}' Connect OK! Subscribe Start ({reason_code})")
 
 def on_disconnect(client, userdata, flags, reason_code, properties):
     print(f"Post process '{userdata['name']}' on_disconnect: {reason_code}")
