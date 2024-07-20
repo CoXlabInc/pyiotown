@@ -14,6 +14,8 @@ def on_connect(client, userdata, flags, reason_code, properties):
     else:
         name = userdata['name']
         print(f"Post process '{name}' Connect OK! Subscribe Start ({reason_code})")
+        client.subscribe([(userdata['topic'], 2),
+                          (userdata['topic'] + '/+', 2)])
 
 def on_disconnect(client, userdata, flags, reason_code, properties):
     print(f"Post process '{userdata['name']}' on_disconnect: {reason_code}")
@@ -144,6 +146,7 @@ def connect(url, name, func, mqtt_url=None, verify=True, dry_run=False):
         "func": func,
         "group": group,
         "name": name,
+        "topic": topic,
         "verify": verify,
         "dry": dry_run,
     })
@@ -171,7 +174,6 @@ def connect(url, name, func, mqtt_url=None, verify=True, dry_run=False):
     client.tls_set(cert_reqs=ssl.CERT_NONE)
     client.tls_insecure_set(True)
     client.connect(mqtt_host, port=mqtt_port)
-    client.subscribe([(topic, 1), (topic + '/+', 1)])
     return client
 
 def connect_common(url, topic, func, mqtt_url=None, dry_run=False):
@@ -197,6 +199,7 @@ def connect_common(url, topic, func, mqtt_url=None, dry_run=False):
         "func": func,
         "group": "common",
         "name": topic,
+        "topic": f'iotown/proc/common/{topic}',
         "verify": False,
         "dry": dry_run,
     })
@@ -222,7 +225,6 @@ def connect_common(url, topic, func, mqtt_url=None, dry_run=False):
     client.tls_set(cert_reqs=ssl.CERT_NONE)
     client.tls_insecure_set(True)
     client.connect(mqtt_host, port=mqtt_port)
-    client.subscribe([(f'iotown/proc/common/{topic}', 1), (f'iotown/proc/common/{topic}/+', 1)])
     return client
 
 def loop_forever(clients):
