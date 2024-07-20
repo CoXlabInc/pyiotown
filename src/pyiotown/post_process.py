@@ -16,6 +16,7 @@ def on_connect(client, userdata, flags, reason_code, properties):
         print(f"Post process '{name}' Connect OK! Subscribe Start")
 
 def on_disconnect(client, userdata, flags, reason_code, properties):
+    print(f"Post process '{userdata['name']}' on_disconnect: {reason_code}")
     if reason_code.is_failure:
         print(f"Post process '{userdata['name']}' disconnected unexpectedly (reason:{reason_code.getName()})", file=sys.stderr)
         sys.exit(3)
