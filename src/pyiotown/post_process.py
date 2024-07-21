@@ -6,7 +6,7 @@ import sys
 import ssl
 import requests
 import threading
-import asyncio
+import concurrent
 
 def on_connect(client, userdata, flags, reason_code, properties):
     if reason_code.is_failure:
@@ -88,7 +88,7 @@ def on_message(client, userdata, msg):
                 print(f"CALLBACK FUNCTION TYPE ERROR {type(result)} must [ dict ]", file=sys.stderr)
                 client.publish('iotown/proc-done', msg.payload, 1)
             
-        if type(result) is asyncio.Future:
+        if type(result) is concurrent.futures._base.Future:
             print(result)
             def handle_future_result(future):
                 result = future.result()
