@@ -91,7 +91,7 @@ def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort
             print(r)
             return None
 
-def async_storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort=None, lastKey=None, consolidate=True, group_id=None, verify=True, timeout=60):
+async def async_storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort=None, lastKey=None, consolidate=True, group_id=None, verify=True, timeout=60):
     uri_prefix, header = storage_common(url, token, nid, date_from, date_to, count, sort, lastKey)
 
     result = None
