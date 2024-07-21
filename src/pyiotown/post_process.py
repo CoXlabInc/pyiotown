@@ -89,12 +89,14 @@ def on_message(client, userdata, msg):
                 client.publish('iotown/proc-done', msg.payload, 1)
             
         if type(result) is asyncio.Future:
+            print("future")
             def handle_future_result(future):
                 result = future.result()
                 handle_result(result)
                 
             result.add_done_callback(handle_future_result)
         else:
+            print(type(result))
             handle_result(result)
         
     except Exception as e:
