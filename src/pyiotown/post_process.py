@@ -6,6 +6,7 @@ import sys
 import ssl
 import requests
 import threading
+import asyncio
 
 def on_connect(client, userdata, flags, reason_code, properties):
     if reason_code.is_failure:
@@ -61,28 +62,41 @@ def on_message(client, userdata, msg):
             print(f"Discard the message for dry-run")
             return
 
-        if result is None:
-            print(f"Discard the message")
-            del message['pp_list']
-            client.publish('iotown/proc-done', json.dumps(message), 1)
-            return
-    
-        if type(result) is dict and 'data' in result.keys():
-            pp_warning = result.get('pp_warning')
-            if pp_warning is not None and type(pp_warning) is str and len(pp_warning) > 0:
-                message['pp_error'][message['pp_list'][0]['name']] = f"Warning on post process ({pp_warning})"
-
-            group_id = message['grpid'] if userdata['group'] == 'common' else None
-            result = post_files(result, userdata['url'], userdata['token'], group_id, userdata['verify'])
-            message['data'] = result['data']
-            try:
+        def handle_result(result):
+            nonlocal message, client, userdata, msg
+            
+            if result is None:
+                print(f"Discard the message")
+                del message['pp_list']
                 client.publish('iotown/proc-done', json.dumps(message), 1)
-            except Exception as e:
-                print(e)
-                print(message)
+                return
+
+            if type(result) is dict and 'data' in result.keys():
+                pp_warning = result.get('pp_warning')
+                if pp_warning is not None and type(pp_warning) is str and len(pp_warning) > 0:
+                    message['pp_error'][message['pp_list'][0]['name']] = f"Warning on post process ({pp_warning})"
+
+                group_id = message['grpid'] if userdata['group'] == 'common' else None
+                result = post_files(result, userdata['url'], userdata['token'], group_id, userdata['verify'])
+                message['data'] = result['data']
+                try:
+                    client.publish('iotown/proc-done', json.dumps(message), 1)
+                except Exception as e:
+                    print(e)
+                    print(message)
+            else:
+                print(f"CALLBACK FUNCTION TYPE ERROR {type(result)} must [ dict ]", file=sys.stderr)
+                client.publish('iotown/proc-done', msg.payload, 1)
+            
+        if type(result) is asyncio.Future:
+            def handle_future_result(future):
+                result = future.result()
+                handle_result(result)
+                
+            result.add_done_callback(handle_future_result)
         else:
-            print(f"CALLBACK FUNCTION TYPE ERROR {type(result)} must [ dict ]", file=sys.stderr)
-            client.publish('iotown/proc-done', msg.payload, 1)
+            handle_result(result)
+        
     except Exception as e:
         print(f"[pyiotown] {e}", file=sys.stderr)
 

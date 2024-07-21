@@ -1,8 +1,6 @@
 import sys
 import requests
 import json
-import ssl
-import asyncio
 import aiohttp
 
 def uploadImage(url, token, payload, group_id=None, verify=True, timeout=60):
