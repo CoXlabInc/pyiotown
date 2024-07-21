@@ -21,21 +21,15 @@ def node(url, token, nid=None, group_id=None, verify=True, timeout=60):
     else:
         print(r)
         raise Exception(r.content)
-    
-def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort=None, lastKey=None, consolidate=True, group_id=None, verify=True, timeout=60):
-    '''
-    url : IoT.own Server Address
-    token : IoT.own API Token
-    nid : Node ID
-    '''
-                    
+
+def storage_common(url, token, nid, date_from, date_to, count, sort, lastKey):
     header = {'Accept':'application/json','token':token}
 
     # only for administrators
     if group_id is not None:
         header['grpid'] = group_id
 
-    uri_prefix = url + "/api/v1.0/storage"
+    uri = url + "/api/v1.0/storage"
 
     params = []
     
@@ -55,13 +49,19 @@ def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort
         params.append(f"sort={sort}")
 
     if len(params) > 0:
-        uri_prefix += '?' + '&'.join(params)
+        uri += '?' + '&'.join(params)
+
+    return uri, header
         
+def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort=None, lastKey=None, consolidate=True, group_id=None, verify=True, timeout=60):
+    uri_prefix, header = storage_common(url, token, nid, date_from, date_to, count, sort, lastKey)
+
     result = None
     
     while True:
         try:
-            uri = uri_prefix if lastKey is None else uri_prefix + "&lastKey=" + lastKey
+            if lastKey is not None:
+                uri = uri_prefix + "&lastKey=" + lastKey
             print(uri)
             r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
         except Exception as e:
@@ -90,6 +90,36 @@ def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort
         else:
             print(r)
             return None
+
+def async_storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort=None, lastKey=None, consolidate=True, group_id=None, verify=True, timeout=60):
+    uri_prefix, header = storage_common(url, token, nid, date_from, date_to, count, sort, lastKey)
+
+    result = None
+
+    while True:
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=True, verify_ssl=verify)) as session:
+            if lastKey is not None:
+                uri = uri_prefix + "&lastKey=" + lastKey
+            
+            async with session.get(uri, headers=header) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if result is None:
+                        result = data
+                    else:
+                        result['data'] += data['data']
+                        if 'lastKey' in data.keys():
+                            result['lastKey'] = data['lastKey']
+                        elif 'lastKey' in result.keys():
+                            del result['lastKey']
+
+                    if consolidate == True and 'lastKey' in result.keys():
+                        lastKey = result['lastKey']
+                    else:
+                        return True, await result
+                else:
+                    return False, await response.json()
+
 
 def command_common(url, token, nid, group_id):
     uri = f"{url}/api/v1.0/command/{nid}"
