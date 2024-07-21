@@ -98,8 +98,9 @@ async def async_storage(url, token, nid=None, date_from=None, date_to=None, coun
 
     while True:
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=True, verify_ssl=verify)) as session:
+            uri = uri_prefix
             if lastKey is not None:
-                uri = uri_prefix + "&lastKey=" + lastKey
+                uri += "&lastKey=" + lastKey
             
             async with session.get(uri, headers=header) as response:
                 if response.status == 200:
