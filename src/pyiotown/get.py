@@ -22,7 +22,7 @@ def node(url, token, nid=None, group_id=None, verify=True, timeout=60):
         print(r)
         raise Exception(r.content)
 
-def storage_common(url, token, nid, date_from, date_to, count, sort, lastKey):
+def storage_common(url, token, nid, date_from, date_to, count, sort, group_id):
     header = {'Accept':'application/json','token':token}
 
     # only for administrators
@@ -54,7 +54,7 @@ def storage_common(url, token, nid, date_from, date_to, count, sort, lastKey):
     return uri, header
         
 def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort=None, lastKey=None, consolidate=True, group_id=None, verify=True, timeout=60):
-    uri_prefix, header = storage_common(url, token, nid, date_from, date_to, count, sort, lastKey)
+    uri_prefix, header = storage_common(url, token, nid, date_from, date_to, count, sort, group_id)
 
     result = None
     
@@ -92,7 +92,7 @@ def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort
             return None
 
 async def async_storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort=None, lastKey=None, consolidate=True, group_id=None, verify=True, timeout=60):
-    uri_prefix, header = storage_common(url, token, nid, date_from, date_to, count, sort, lastKey)
+    uri_prefix, header = storage_common(url, token, nid, date_from, date_to, count, sort, group_id)
 
     result = None
 
