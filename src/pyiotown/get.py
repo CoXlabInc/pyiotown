@@ -117,7 +117,7 @@ async def async_storage(url, token, nid=None, date_from=None, date_to=None, coun
                     if consolidate == True and 'lastKey' in result.keys():
                         lastKey = result['lastKey']
                     else:
-                        return True, await result
+                        return True, result
                 else:
                     return False, await response.json()
 
