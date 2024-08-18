@@ -14,13 +14,13 @@ def node(url, token, nid=None, group_id=None, verify=True, timeout=60):
         r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
     except Exception as e:
         print(e)
-        return None
+        return False, None
     
     if r.status_code == 200:
-        return r.json()['node']
+        result = r.json()['nodes'] if nid is None else r.json()['node']
+        return True, result
     else:
-        print(r)
-        raise Exception(r.content)
+        return False, r.json()
 
 def storage_common(url, token, nid, date_from, date_to, count, sort, group_id):
     header = {'Accept':'application/json','token':token}
