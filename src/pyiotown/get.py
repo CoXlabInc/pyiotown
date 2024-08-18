@@ -157,24 +157,22 @@ async def async_command(url, token, nid, group_id=None, verify=True, timeout=60)
             else:
                 return False, await response.json()
 
-def downloadImage(url, token, imageID, verify=True, timeout=60):
-    ''' 
-    url : IoT.own Server Address
-    token : IoT.own API Token
-    imageID : IoT.own imageID ( using annotation's 'id' not '_id' ) 
-    '''
-    uri = url + "/nn/dataset/img/" + imageID
-    header = {'Accept':'application/json', 'token':token}
+def file(url, token, file_id, group_id=None, verify=True, timeout=60):
+    uri = url + "/file/" + file_id
+    header = {'token':token}
+    if group_id is not None:
+        header['grpid'] = group_id
+        
     try:
         r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
         if r.status_code == 200:
-            return r.content
+            return True, r.content
         else:
             print(r)
-            return None
+            return False, r
     except Exception as e:
         print(e)
-        return None
+        return False, None
 
 def downloadAnnotations(url, token, classname, verify=True, timeout=60):
     ''' 
