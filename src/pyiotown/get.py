@@ -60,13 +60,13 @@ def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort
     
     while True:
         try:
+            uri = uri_prefix
             if lastKey is not None:
-                uri = uri_prefix + "&lastKey=" + lastKey
-            print(uri)
+                uri += "&lastKey=" + lastKey
             r = requests.get(uri, headers=header, verify=verify, timeout=timeout)
         except Exception as e:
             print(e)
-            return None
+            return False, None
     
         if r.status_code == 200:
             data_obj = r.json()
@@ -86,10 +86,10 @@ def storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort
             if consolidate == True and 'lastKey' in result.keys():
                 lastKey = result['lastKey']
             else:
-                return result
+                return True, result
         else:
             print(r)
-            return None
+            return False, r.json()
 
 async def async_storage(url, token, nid=None, date_from=None, date_to=None, count=None, sort=None, lastKey=None, consolidate=True, group_id=None, verify=True, timeout=60):
     uri_prefix, header = storage_common(url, token, nid, date_from, date_to, count, sort, group_id)
