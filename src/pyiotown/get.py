@@ -158,7 +158,7 @@ async def async_command(url, token, nid, group_id=None, verify=True, timeout=60)
                 return False, await response.json()
 
 def file(url, token, file_id, group_id=None, verify=True, timeout=60):
-    uri = url + "/file/" + file_id
+    uri = url + "/api/v1.0/file/" + file_id
     header = {'token':token}
     if group_id is not None:
         header['grpid'] = group_id
