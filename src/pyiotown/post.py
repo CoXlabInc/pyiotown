@@ -103,8 +103,8 @@ async def async_command(url, token, nid, command, lorawan=None, group_id=None, v
             
             try:
                 content = json.load(content)
-            except:
-                pass
+            except Exception as e:
+                print(e)
                 
             if response.status == 200:
                 return True, content
