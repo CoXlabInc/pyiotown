@@ -99,10 +99,17 @@ async def async_command(url, token, nid, command, lorawan=None, group_id=None, v
 
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=True, verify_ssl=verify)) as session:
         async with session.post(uri, headers=header, json=payload) as response:
+            content = await response.text()
+            
+            try:
+                content = json.load(content)
+            except:
+                pass
+                
             if response.status == 200:
-                return True, await response.json()
+                return True, content
             else:
-                return False, await response.json()
+                return False, content
     
 def command(url, token, nid, command, lorawan=None, group_id=None, verify=True, timeout=60):
     uri, header, payload = command_common(url, token, nid, command, lorawan, group_id)
