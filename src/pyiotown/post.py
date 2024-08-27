@@ -102,9 +102,9 @@ async def async_command(url, token, nid, command, lorawan=None, group_id=None, v
             content = await response.text()
             
             try:
-                content = json.load(content)
-            except Exception as e:
-                print(e)
+                content = json.loads(content)
+            except:
+                pass
                 
             if response.status == 200:
                 return True, content
