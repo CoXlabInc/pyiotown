@@ -15,16 +15,17 @@ def on_connect(client, userdata, flags, reason_code, properties):
     else:
         name = userdata['name']
         print(f"Post process '{name}' Connect OK! Subscribe Start ({reason_code})")
-        client.subscribe([(userdata['topic'], 2),
-                          (userdata['topic'] + '/+', 2)])
+        client.subscribe([('iotown/proc/' + userdata['topic'], 2),
+                          ('iotown/proc/' + userdata['topic'] + '/+', 2),
+                          ('iotown/proc-down/' + userdata['topic'], 2)])
 
 def on_disconnect(client, userdata, flags, reason_code, properties):
     print(f"Post process '{userdata['name']}' on_disconnect: {reason_code}")
     if reason_code.is_failure:
         print(f"Post process '{userdata['name']}' disconnected unexpectedly (reason:{reason_code.getName()})", file=sys.stderr)
         sys.exit(3)
-        
-def on_message(client, userdata, msg):
+
+def on_up_message(client, userdata, msg):
     try:
         message = json.loads((msg.payload).decode('utf-8'))
 
@@ -40,7 +41,7 @@ def on_message(client, userdata, msg):
         data['pp_warning'] = ''
 
         try:
-            result = userdata['func'](data, param)
+            result = userdata['func'][0](data, param)
         except Exception as e:
             trace = ""
             tb = e.__traceback__
@@ -100,6 +101,21 @@ def on_message(client, userdata, msg):
     except Exception as e:
         print(f"[pyiotown] {e}", file=sys.stderr)
 
+def on_down_message(client, userdata, msg):
+    if userdata['func'][1] is None:
+        return
+    try:
+        message = json.loads((msg.payload).decode('utf-8'))
+        userdata['func'][1](message)
+    except Exception as e:
+        print(e)
+    
+def on_message(client, userdata, msg):
+    if msg.topic.startswith('iotown/proc-down'):
+        on_down_message(client, userdata, msg)
+    else:
+        on_up_message(client, userdata, msg)
+
 def updateExpire(url, token, name, verify=True, timeout=60):
     apiaddr = url + "/api/v1.0/pp/proc"
     header = {'Accept':'application/json', 'token':token}
@@ -125,7 +141,7 @@ def getTopic(url, token, name, verify=True, timeout=60):
     else:
         raise Exception(r.content.decode('utf-8'))
 
-def connect(url, name, func, mqtt_url=None, verify=True, dry_run=False):
+def connect(url, name, func, down_func=None, mqtt_url=None, verify=True, dry_run=False):
     url_parsed = urlparse(url)
     if url_parsed.username is None:
         raise Exception("The username is not specified.")
@@ -157,7 +173,7 @@ def connect(url, name, func, mqtt_url=None, verify=True, dry_run=False):
     client.user_data_set({
         "url": url,
         "token": token,
-        "func": func,
+        "func": [func, down_func],
         "group": group,
         "name": name,
         "topic": topic,
@@ -190,7 +206,7 @@ def connect(url, name, func, mqtt_url=None, verify=True, dry_run=False):
     client.connect(mqtt_host, port=mqtt_port)
     return client
 
-def connect_common(url, topic, func, mqtt_url=None, dry_run=False):
+def connect_common(url, topic, func, down_func=None, mqtt_url=None, dry_run=False):
     url_parsed = urlparse(url)
     if url_parsed.username is None:
         raise Exception("The username is not specified.")
@@ -210,10 +226,10 @@ def connect_common(url, topic, func, mqtt_url=None, dry_run=False):
     client.user_data_set({
         "url": url,
         "token": token,
-        "func": func,
+        "func": [ func, down_func ],
         "group": "common",
         "name": topic,
-        "topic": f'iotown/proc/common/{topic}',
+        "topic": f'common/{topic}',
         "verify": False,
         "dry": dry_run,
     })
