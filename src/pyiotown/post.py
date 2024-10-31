@@ -116,15 +116,17 @@ def command(url, token, nid, command, lorawan=None, group_id=None, verify=True, 
     
     try:
         r = requests.post(uri, json=payload, headers=header, verify=verify, timeout=timeout)
+        try:
+            content = json.loads(r.content)
+        except:
+            content = r.content
         if r.status_code == 200:
-            print(r.content)
-            return True
+            return True, content
         else:
-            print(r.content)
-            return False
+            return False, content
     except Exception as e:
         print(e)
-        return False
+        return False, None
 
 def post_files(result, url, token, group_id=None, verify=True, timeout=60):
     if 'data' not in result.keys():
