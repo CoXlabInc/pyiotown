@@ -32,6 +32,8 @@ def data(url, token, nid, data, upload="", group_id=None, verify=True, timeout=6
     nid: Node ID
     data: data to send (JSON object)
     '''
+    if data is None or data == {}:
+        return False, None
     typenum = "2" # 2 static 
     apiaddr = url + "/api/v1.0/data"
     if upload == "":
@@ -41,14 +43,17 @@ def data(url, token, nid, data, upload="", group_id=None, verify=True, timeout=6
         payload = { "type" : typenum, "nid" : nid, "data": data }
         try:
             r = requests.post(apiaddr, json=payload, headers=header, verify=verify, timeout=timeout)
+            try:
+                content = json.loads(r.content)
+            except:
+                content = r.content
             if r.status_code == 200:
-                return True
+                return True, content
             else:
-                print(r.content)
-                return False
+                return False, content
         except Exception as e:
             print(e)
-            return False
+            return False, None
     else:
         header = {'Accept':'application/json', 'token':token }
         if group_id is not None:
@@ -56,14 +61,17 @@ def data(url, token, nid, data, upload="", group_id=None, verify=True, timeout=6
         payload = { "type" : typenum, "nid" : nid, "meta": json.dumps(data) }
         try:
             r = requests.post(apiaddr, data=payload, headers=header, verify=verify, timeout=timeout, files=upload)
+            try:
+                content = json.loads(r.content)
+            except:
+                content = r.content
             if r.status_code == 200:
-                return True
+                return True, content
             else:
-                print(r.content)
-                return False
+                return False, content
         except Exception as e:
             print(e)
-            return False
+            return False, None
 
 def command_common(url, token, nid, command, lorawan, group_id):
     uri = url + "/api/v1.0/command"
