@@ -1,7 +1,7 @@
 import requests
 import aiohttp
 
-def node_common(url, token, nid, group_id):
+def node_common(url, token, nid, group_id, include_lorawan_session):
     header = {'Accept':'application/json','token':token}
 
     # only for administrators
@@ -10,9 +10,12 @@ def node_common(url, token, nid, group_id):
 
     uri = url + "/api/v1.0/" + ("nodes" if nid is None else f"node/{nid}")
 
+    if include_lorawan_session == False:
+        uri += '/without-lorawan-session'
+
     return uri, header
 
-def node(url, token, nid=None, group_id=None, verify=True, timeout=60):
+def node(url, token, nid=None, group_id=None, verify=True, timeout=60, include_lorawan_session=True):
     uri, header = node_common(url, token, nid, group_id)
     
     try:
@@ -27,8 +30,8 @@ def node(url, token, nid=None, group_id=None, verify=True, timeout=60):
     else:
         return False, r.json()
 
-async def async_node(url, token, nid=None, group_id=None, verify=True, timeout=60):
-    uri, header = node_common(url, token, nid, group_id)
+async def async_node(url, token, nid=None, group_id=None, verify=True, timeout=60, include_lorawan_session=True):
+    uri, header = node_common(url, token, nid, group_id, include_lorawan_session)
 
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=True, verify_ssl=verify)) as session:
         async with session.get(uri, headers=header) as response:
