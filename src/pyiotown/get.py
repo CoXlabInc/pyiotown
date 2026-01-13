@@ -35,9 +35,12 @@ async def async_node(url, token, nid=None, group_id=None, verify=True, timeout=6
 
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=True, verify_ssl=verify)) as session:
         async with session.get(uri, headers=header) as response:
-            result = await response.json()
+            try:
+                result = await response.json()
+            except aiohttp.ContentTypeError:
+                result = await response.text()
             
-            if response.status == 200:
+            if response.status == 200 and isinstance(result, dict):
                 return True, result['nodes'] if nid is None else result['node']
             else:
                 return False, result
@@ -123,8 +126,12 @@ async def async_storage(url, token, nid=None, date_from=None, date_to=None, coun
                 uri += "&lastKey=" + lastKey
             
             async with session.get(uri, headers=header) as response:
-                if response.status == 200:
+                try:
                     data = await response.json()
+                except aiohttp.ContentTypeError:
+                    data = await response.text()
+
+                if response.status == 200 and isinstance(data, dict):
                     if result is None:
                         result = data
                     else:
@@ -139,7 +146,7 @@ async def async_storage(url, token, nid=None, date_from=None, date_to=None, coun
                     else:
                         return True, result
                 else:
-                    return False, await response.json()
+                    return False, data
 
 
 def command_common(url, token, nid, group_id):
@@ -172,10 +179,15 @@ async def async_command(url, token, nid, group_id=None, verify=True, timeout=60)
 
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=True, verify_ssl=verify)) as session:
         async with session.get(uri, headers=header) as response:
-            if response.status == 200:
-                return True, await response.json()
+            try:
+                result = await response.json()
+            except aiohttp.ContentTypeError:
+                result = await response.text()
+
+            if response.status == 200 and isinstance(result, dict):
+                return True, result
             else:
-                return False, await response.json()
+                return False, result
 
 def file(url, token, file_id, group_id=None, verify=True, timeout=60):
     uri = url + "/api/v1.0/file/" + file_id
